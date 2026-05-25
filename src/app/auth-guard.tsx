@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
+import { useRouteStore } from '@/stores/route'
 import { useTabsStore } from '@/stores/tabs'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -10,18 +11,23 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const fetchUserInfo = useUserStore((s) => s.fetchUserInfo)
   const fetchRoutes = useUserStore((s) => s.fetchRoutes)
   const setTabsFromRoutes = useTabsStore((s) => s.setTabsFromRoutes)
+  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (token && !userInfo) {
+    if (!token) return
+    // Fetch routes if not yet loaded into routeStore (covers both first login and page refresh)
+    if (dynamicRoutes.length === 0) {
       setLoading(true)
-      Promise.all([fetchUserInfo(), fetchRoutes()])
-        .then(([, routesRes]) => {
+      const tasks: Promise<any>[] = [fetchRoutes()]
+      if (!userInfo) tasks.push(fetchUserInfo())
+      Promise.all(tasks)
+        .then(([routesRes]) => {
           setTabsFromRoutes(routesRes)
         })
         .finally(() => setLoading(false))
     }
-  }, [token, userInfo, fetchUserInfo, fetchRoutes, setTabsFromRoutes])
+  }, [token, userInfo, dynamicRoutes.length, fetchUserInfo, fetchRoutes, setTabsFromRoutes])
 
   if (!token) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />

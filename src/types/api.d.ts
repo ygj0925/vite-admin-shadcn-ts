@@ -24,13 +24,22 @@ export interface LabelValueState {
 }
 
 export interface RouteItem {
+  id?: number
+  parentId?: number
   path: string
+  name?: string
   component: string
   redirect?: string
-  meta: {
-    title: string
+  title?: string
+  icon?: string
+  isHidden?: boolean
+  isCache?: boolean
+  isExternal?: boolean
+  sort?: number
+  // 兼容旧 meta 结构
+  meta?: {
+    title?: string
     icon?: string
-    svgIcon?: string
     hidden?: boolean
     alwaysShow?: boolean
     affix?: boolean

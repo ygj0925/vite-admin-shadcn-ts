@@ -11,6 +11,7 @@ export interface OnlineUser {
   browser: string
   os: string
   loginTime: string
+  lastActiveTime: string
 }
 
 export function getOnlineUserPage(params: PageQuery) {

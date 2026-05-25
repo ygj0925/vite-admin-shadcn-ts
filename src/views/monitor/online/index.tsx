@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { LogOut } from 'lucide-react'
+import { LogOut, Search, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/data-table'
 import { DeleteConfirm } from '@/components/delete-confirm'
 import { useCrud } from '@/hooks/use-crud'
@@ -9,14 +11,21 @@ import { getOnlineUserPage, kickoutOnlineUser, type OnlineUser } from '@/apis/mo
 import { toast } from 'sonner'
 
 export default function OnlineUserPage() {
+  const [nickname, setNickname] = useState('')
   const [kickOpen, setKickOpen] = useState(false)
   const [kickTarget, setKickTarget] = useState<OnlineUser | null>(null)
 
-  const listApi = useCallback((params: Record<string, unknown>) => getOnlineUserPage(params as any), [])
+  const listApi = useCallback(
+    (params: Record<string, unknown>) => {
+      const q: Record<string, unknown> = { ...params }
+      if (nickname) q.nickname = nickname
+      return getOnlineUserPage(q as any)
+    },
+    [nickname],
+  )
 
-  const { data, total, loading, query, fetchData, handlePageChange, handleSizeChange } = useCrud<OnlineUser, any>({
-    listApi,
-  })
+  const { data, total, loading, query, fetchData, handleSearch, handleReset, handlePageChange, handleSizeChange } =
+    useCrud<OnlineUser, any>({ listApi })
 
   const handleKickout = async () => {
     if (!kickTarget) return
@@ -39,6 +48,7 @@ export default function OnlineUserPage() {
     { accessorKey: 'browser', header: '浏览器' },
     { accessorKey: 'os', header: '操作系统' },
     { accessorKey: 'loginTime', header: '登录时间' },
+    { accessorKey: 'lastActiveTime', header: '最后活跃', cell: ({ row }) => (row.original as any).lastActiveTime || '-' },
     {
       id: 'actions',
       header: '操作',
@@ -55,11 +65,27 @@ export default function OnlineUserPage() {
     },
   ]
 
+  const handleSearchClick = () => handleSearch({ nickname: nickname || undefined } as any)
+  const handleResetClick = () => { setNickname(''); handleReset() }
+
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-lg font-medium text-foreground">在线用户</h1>
         <p className="text-sm text-muted-foreground mt-1">当前在线用户列表</p>
+      </div>
+
+      <div className="flex items-end gap-3">
+        <div className="space-y-1.5">
+          <Label>昵称</Label>
+          <Input placeholder="请输入昵称" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-48" />
+        </div>
+        <Button size="sm" onClick={handleSearchClick}>
+          <Search className="mr-1.5 h-3.5 w-3.5" />搜索
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleResetClick}>
+          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />重置
+        </Button>
       </div>
 
       <DataTable

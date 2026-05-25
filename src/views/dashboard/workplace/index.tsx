@@ -73,13 +73,13 @@ const notices = [
   { id: 5, title: '安全提醒：请定期更换系统密码', time: '5 天前', type: '通知' },
 ]
 
+const TESLA_BLUE = '#3E6AE1'
+
 const carouselItems = [
   { title: 'ContNew v2.3.0 正式发布', desc: '全新暗色模式、性能优化、移动端适配', color: TESLA_BLUE },
   { title: '开发者大会 2026', desc: '6 月 15 日，线上直播，免费报名', color: '#171A20' },
   { title: '插件市场全新上线', desc: '海量插件，一键安装，生态共建', color: '#5C5E62' },
 ]
-
-const TESLA_BLUE = '#3E6AE1'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
