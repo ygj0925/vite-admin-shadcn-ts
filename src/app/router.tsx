@@ -21,6 +21,8 @@ const ChangelogPage = lazy(() => import('@/views/about/document/changelog'))
 const RedirectPage = lazy(() => import('@/views/redirect/index'))
 const WorkplacePage = lazy(() => import('@/views/dashboard/workplace/index'))
 const AnalysisPage = lazy(() => import('@/views/dashboard/analysis/index'))
+const ITDashboardPage = lazy(() => import('@/views/it-dashboard/index'))
+const ITDashboardTabsPage = lazy(() => import('@/views/it-dashboard/tabs/index'))
 
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
@@ -105,6 +107,14 @@ export function AppRouter() {
       {
         path: '/login',
         element: wrap(LoginPage),
+      },
+      {
+        path: '/it-dashboard',
+        element: wrap(ITDashboardPage),
+      },
+      {
+        path: '/it-dashboard-tabs',
+        element: wrap(ITDashboardTabsPage),
       },
       {
         path: '/pwdExpired',
