@@ -1,26 +1,57 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Square, RefreshCw, Eye } from 'lucide-react'
+import { Square, RefreshCw, Eye, Search, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DataTable } from '@/components/data-table'
 import { DeleteConfirm } from '@/components/delete-confirm'
 import { useCrud } from '@/hooks/use-crud'
+import { usePermission } from '@/hooks/use-permission'
 import { getJobLogPage, stopJobLog, retryJobLog, type JobLog } from '@/apis/schedule/log'
+import { getJobGroup } from '@/apis/schedule/job'
 import { toast } from 'sonner'
 
+const STATUS_OPTIONS = [
+  { label: '成功', value: 1 },
+  { label: '失败', value: 2 },
+  { label: '运行中', value: 0 },
+]
+
 export default function JobLogPage() {
+  const { has } = usePermission()
+  const [searchParams] = useSearchParams()
+  const [jobName, setJobName] = useState(searchParams.get('jobName') || '')
+  const [groupName, setGroupName] = useState(searchParams.get('groupName') || '')
+  const [taskBatchStatus, setTaskBatchStatus] = useState<string>('')
+  const [groupList, setGroupList] = useState<string[]>([])
+
   const [stopOpen, setStopOpen] = useState(false)
   const [stopTarget, setStopTarget] = useState<JobLog | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [current, setCurrent] = useState<JobLog | null>(null)
 
-  const listApi = useCallback((params: Record<string, unknown>) => getJobLogPage(params as any), [])
+  useEffect(() => {
+    getJobGroup().then((res) => setGroupList(res.data || [])).catch(() => {})
+  }, [])
 
-  const { data, total, loading, query, fetchData, handlePageChange, handleSizeChange } = useCrud<JobLog, any>({
-    listApi,
-  })
+  const listApi = useCallback(
+    (params: Record<string, unknown>) => {
+      const query: Record<string, unknown> = { ...params }
+      if (jobName) query.jobName = jobName
+      if (groupName) query.groupName = groupName
+      if (taskBatchStatus) query.taskBatchStatus = Number(taskBatchStatus)
+      const jobId = searchParams.get('jobId')
+      if (jobId) query.jobId = Number(jobId)
+      return getJobLogPage(query as any)
+    },
+    [jobName, groupName, taskBatchStatus, searchParams]
+  )
+
+  const { data, total, loading, query, fetchData, handleSearch, handleReset, handlePageChange, handleSizeChange } = useCrud<JobLog, any>({ listApi })
 
   const handleStop = async () => {
     if (!stopTarget) return
@@ -45,26 +76,24 @@ export default function JobLogPage() {
     }
   }
 
+  const dictLabel = (options: { label: string; value: number }[], val: number) =>
+    options.find((o) => o.value === val)?.label || String(val)
+
   const columns: ColumnDef<JobLog, any>[] = [
     { accessorKey: 'jobName', header: '任务名称' },
-    { accessorKey: 'jobGroup', header: '任务分组' },
+    { accessorKey: 'groupName', header: '任务分组' },
     {
-      accessorKey: 'status',
+      accessorKey: 'taskBatchStatus',
       header: '状态',
       cell: ({ row }) => (
-        <Badge variant={row.original.status === 1 ? 'default' : row.original.status === 2 ? 'destructive' : 'secondary'}>
-          {row.original.status === 1 ? '成功' : row.original.status === 2 ? '失败' : '运行中'}
+        <Badge variant={row.original.taskBatchStatus === 1 ? 'default' : row.original.taskBatchStatus === 2 ? 'destructive' : 'secondary'}>
+          {dictLabel(STATUS_OPTIONS, row.original.taskBatchStatus)}
         </Badge>
       ),
     },
-    { accessorKey: 'errorMsg', header: '错误信息' },
-    { accessorKey: 'startTime', header: '开始时间' },
-    { accessorKey: 'endTime', header: '结束时间' },
-    {
-      accessorKey: 'duration',
-      header: '耗时',
-      cell: ({ row }) => row.original.duration ? `${row.original.duration}ms` : '-',
-    },
+    { accessorKey: 'executorInfo', header: '执行器信息' },
+    { accessorKey: 'executionAt', header: '执行时间' },
+    { accessorKey: 'createDt', header: '创建时间' },
     {
       id: 'actions',
       header: '操作',
@@ -73,12 +102,12 @@ export default function JobLogPage() {
           <Button variant="ghost" size="sm" onClick={() => { setCurrent(row.original); setDetailOpen(true) }}>
             <Eye className="h-4 w-4" />
           </Button>
-          {row.original.status === 0 && (
+          {has('schedule:log:stop') && row.original.taskBatchStatus === 0 && (
             <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => { setStopTarget(row.original); setStopOpen(true) }}>
               <Square className="h-4 w-4" />
             </Button>
           )}
-          {row.original.status === 2 && (
+          {has('schedule:log:retry') && row.original.taskBatchStatus === 2 && (
             <Button variant="ghost" size="sm" onClick={() => handleRetry(row.original)}>
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -88,6 +117,9 @@ export default function JobLogPage() {
     },
   ]
 
+  const handleSearchClick = () => handleSearch({ jobName, groupName, taskBatchStatus } as any)
+  const handleResetClick = () => { setJobName(''); setGroupName(''); setTaskBatchStatus(''); handleReset() }
+
   return (
     <div className="space-y-4">
       <div>
@@ -95,16 +127,20 @@ export default function JobLogPage() {
         <p className="text-sm text-muted-foreground mt-1">定时任务执行日志</p>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={data}
-        total={total}
-        page={query.page || 1}
-        size={query.size || 10}
-        loading={loading}
-        onPageChange={handlePageChange}
-        onSizeChange={handleSizeChange}
-      />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">任务名称</Label>
+          <Input placeholder="请输入任务名称" value={jobName} onChange={(e) => setJobName(e.target.value)} className="h-8 w-40" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">任务分组</Label>
+          <Input placeholder="请输入任务分组" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="h-8 w-40" />
+        </div>
+        <Button size="sm" onClick={handleSearchClick}><Search className="h-4 w-4 mr-1" />搜索</Button>
+        <Button size="sm" variant="outline" onClick={handleResetClick}><RotateCcw className="h-4 w-4 mr-1" />重置</Button>
+      </div>
+
+      <DataTable columns={columns} data={data} total={total} page={query.page || 1} size={query.size || 10} loading={loading} onPageChange={handlePageChange} onSizeChange={handleSizeChange} />
 
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-lg">
@@ -114,29 +150,23 @@ export default function JobLogPage() {
           {current && (
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-muted-foreground">任务名称：</span>{current.jobName}</div>
-              <div><span className="text-muted-foreground">任务分组：</span>{current.jobGroup}</div>
-              <div><span className="text-muted-foreground">执行类：</span>{current.className}</div>
-              <div><span className="text-muted-foreground">Cron：</span>{current.cron}</div>
+              <div><span className="text-muted-foreground">任务分组：</span>{current.groupName}</div>
+              <div><span className="text-muted-foreground">执行器信息：</span>{current.executorInfo}</div>
               <div>
                 <span className="text-muted-foreground">状态：</span>
-                <Badge variant={current.status === 1 ? 'default' : current.status === 2 ? 'destructive' : 'secondary'}>
-                  {current.status === 1 ? '成功' : current.status === 2 ? '失败' : '运行中'}
+                <Badge variant={current.taskBatchStatus === 1 ? 'default' : current.taskBatchStatus === 2 ? 'destructive' : 'secondary'}>
+                  {dictLabel(STATUS_OPTIONS, current.taskBatchStatus)}
                 </Badge>
               </div>
-              <div><span className="text-muted-foreground">耗时：</span>{current.duration ? `${current.duration}ms` : '-'}</div>
-              <div><span className="text-muted-foreground">开始时间：</span>{current.startTime}</div>
-              <div><span className="text-muted-foreground">结束时间：</span>{current.endTime}</div>
-              {current.errorMsg && <div className="col-span-2"><span className="text-muted-foreground">错误信息：</span>{current.errorMsg}</div>}
+              <div><span className="text-muted-foreground">执行时间：</span>{current.executionAt}</div>
+              <div><span className="text-muted-foreground">创建时间：</span>{current.createDt}</div>
+              {current.operationReason && <div className="col-span-2"><span className="text-muted-foreground">操作原因：</span>{current.operationReason}</div>}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirm
-        open={stopOpen}
-        onOpenChange={setStopOpen}
-        onConfirm={handleStop}
-      />
+      <DeleteConfirm open={stopOpen} onOpenChange={setStopOpen} onConfirm={handleStop} title="确认停止" description="确定停止该任务吗？" />
     </div>
   )
 }

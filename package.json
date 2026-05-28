@@ -21,6 +21,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.3.0",
     "dayjs": "^1.11.20",
+    "highlight.js": "^11.11.1",
     "jsencrypt": "^3.5.4",
     "lucide-react": "^1.16.0",
     "radix-ui": "^1.4.3",

@@ -23,6 +23,13 @@ const WorkplacePage = lazy(() => import('@/views/dashboard/workplace/index'))
 const AnalysisPage = lazy(() => import('@/views/dashboard/analysis/index'))
 const ITDashboardPage = lazy(() => import('@/views/it-dashboard/index'))
 const ITDashboardTabsPage = lazy(() => import('@/views/it-dashboard/tabs/index'))
+const SystemConfigPage = lazy(() => import('@/views/system/config/index'))
+const DictTreePage = lazy(() => import('@/views/system/dict/tree'))
+const AddNoticePage = lazy(() => import('@/views/system/notice/add'))
+const ViewNoticePage = lazy(() => import('@/views/system/notice/view'))
+const RoleTreePage = lazy(() => import('@/views/system/role/tree'))
+const UserDeptPage = lazy(() => import('@/views/system/user/dept'))
+const MonitorLogPage = lazy(() => import('@/views/monitor/log/index'))
 
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
@@ -154,6 +161,34 @@ export function AppRouter() {
           {
             path: 'about/document/changelog',
             element: wrap(ChangelogPage),
+          },
+          {
+            path: 'system/config',
+            element: wrap(SystemConfigPage),
+          },
+          {
+            path: 'system/dict/tree',
+            element: wrap(DictTreePage),
+          },
+          {
+            path: 'system/notice/add',
+            element: wrap(AddNoticePage),
+          },
+          {
+            path: 'system/notice/view/:id',
+            element: wrap(ViewNoticePage),
+          },
+          {
+            path: 'system/role/tree',
+            element: wrap(RoleTreePage),
+          },
+          {
+            path: 'system/user/dept',
+            element: wrap(UserDeptPage),
+          },
+          {
+            path: 'monitor/log',
+            element: wrap(MonitorLogPage),
           },
           {
             path: 'redirect/:path',

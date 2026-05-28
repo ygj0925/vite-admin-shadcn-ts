@@ -3,16 +3,24 @@ import type { PageRes, PageQuery } from '@/types/api'
 
 export interface Job {
   id: number
-  name: string
-  group: string
-  cron: string
-  status: number
-  concurrent: boolean
-  misfirePolicy: number
-  className: string
-  description: string
-  createTime: string
-  updateTime: string
+  groupName: string
+  jobName: string
+  description?: string
+  triggerType: number
+  triggerInterval: string
+  taskType: number
+  executorInfo: string
+  argsStr?: string
+  routeKey: number
+  blockStrategy: number
+  executorTimeout: number
+  maxRetryTimes: number
+  retryInterval: number
+  parallelNum: number
+  jobStatus: number
+  nextTriggerAt?: string
+  createDt?: string
+  updateDt?: string
 }
 
 export function getJobGroup() {
@@ -35,8 +43,8 @@ export function deleteJob(id: number) {
   return del(`/schedule/job/${id}`)
 }
 
-export function updateJobStatus(id: number, status: number) {
-  return patch(`/schedule/job/${id}/status`, { status })
+export function updateJobStatus(id: number, jobStatus: number) {
+  return patch(`/schedule/job/${id}/status`, { jobStatus })
 }
 
 export function triggerJob(id: number) {

@@ -1,29 +1,62 @@
 import { get } from '@/apis/http'
 
-export interface DashboardOverview {
-  userCount: number
-  roleCount: number
-  menuCount: number
-  onlineCount: number
+export interface DashboardNotice {
+  id: number
+  title: string
+  type: number
+  isTop: boolean
 }
 
-export interface AccessTrend {
+export interface DashboardAccessTrend {
   date: string
-  count: number
+  pvCount: number
+  ipCount: number
 }
 
-export function getDashboardOverviewPv() {
-  return get<{ todayCount: number; yesterdayCount: number; thisWeekCount: number }>('/dashboard/analysis/overview/pv')
+export interface DashboardOverview {
+  total: number
+  today: number
+  growth: number
+  dataList: DashboardChartItem[]
 }
 
-export function getDashboardOverviewIp() {
-  return get<{ todayCount: number; yesterdayCount: number; thisWeekCount: number }>('/dashboard/analysis/overview/ip')
-}
-
-export function getAccessTrend(days: number = 7) {
-  return get<AccessTrend[]>(`/dashboard/access/trend/${days}`)
+export interface DashboardChartItem {
+  name: string
+  value: number
 }
 
 export function getDashboardNotice() {
-  return get<any[]>('/dashboard/notice')
+  return get<DashboardNotice[]>('/dashboard/notice')
+}
+
+export function getDashboardOverviewPv() {
+  return get<DashboardOverview>('/dashboard/analysis/overview/pv')
+}
+
+export function getDashboardOverviewIp() {
+  return get<DashboardOverview>('/dashboard/analysis/overview/ip')
+}
+
+export function getAccessTrend(days: number = 7) {
+  return get<DashboardAccessTrend[]>(`/dashboard/access/trend/${days}`)
+}
+
+export function getAnalysisGeo() {
+  return get<DashboardChartItem[]>('/dashboard/analysis/geo')
+}
+
+export function getAnalysisTimeslot() {
+  return get<DashboardChartItem[]>('/dashboard/analysis/timeslot')
+}
+
+export function getAnalysisModule() {
+  return get<DashboardChartItem[]>('/dashboard/analysis/module')
+}
+
+export function getAnalysisOs() {
+  return get<DashboardChartItem[]>('/dashboard/analysis/os')
+}
+
+export function getAnalysisBrowser() {
+  return get<DashboardChartItem[]>('/dashboard/analysis/browser')
 }

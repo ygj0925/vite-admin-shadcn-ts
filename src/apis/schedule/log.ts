@@ -3,16 +3,14 @@ import type { PageRes, PageQuery } from '@/types/api'
 
 export interface JobLog {
   id: number
-  jobId: number
+  groupName: string
   jobName: string
-  jobGroup: string
-  className: string
-  cron: string
-  status: number
-  errorMsg: string
-  startTime: string
-  endTime: string
-  duration: number
+  jobId: number
+  taskBatchStatus: number
+  operationReason: number
+  executorInfo: string
+  executionAt: string
+  createDt: string
 }
 
 export function getJobLogPage(params: PageQuery) {

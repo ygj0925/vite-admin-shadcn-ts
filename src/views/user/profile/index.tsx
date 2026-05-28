@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import {
@@ -42,7 +43,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { useUserStore } from '@/stores/user'
-import { updateProfile, updatePassword, updateAvatar } from '@/apis/user/profile'
+import {
+  updateProfile,
+  updatePassword,
+  updateAvatar,
+  updatePhone,
+  updateEmail,
+  listUserSocial,
+  unbindSocialAccount,
+  type SocialAccount,
+} from '@/apis/user/profile'
+import { encryptByRsa } from '@/utils/encrypt'
 import { toast } from 'sonner'
 
 /* ------------------------------------------------------------------ */
@@ -146,20 +157,13 @@ function BasicInfoUpdateModal({
               <Label>昵称</Label>
               <Input
                 value={form.nickname}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, nickname: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, nickname: e.target.value }))}
                 placeholder="请输入昵称"
               />
             </div>
             <div className="space-y-1.5">
               <Label>性别</Label>
-              <Select
-                value={String(form.gender)}
-                onValueChange={(v) =>
-                  setForm((p) => ({ ...p, gender: Number(v) }))
-                }
-              >
+              <Select value={String(form.gender)} onValueChange={(v) => setForm((p) => ({ ...p, gender: Number(v) }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -172,41 +176,20 @@ function BasicInfoUpdateModal({
             </div>
             <div className="space-y-1.5">
               <Label>邮箱</Label>
-              <Input
-                value={form.email}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, email: e.target.value }))
-                }
-                placeholder="请输入邮箱"
-              />
+              <Input value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="请输入邮箱" />
             </div>
             <div className="space-y-1.5">
               <Label>手机号</Label>
-              <Input
-                value={form.phone}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, phone: e.target.value }))
-                }
-                placeholder="请输入手机号"
-              />
+              <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="请输入手机号" />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label>个人描述</Label>
-            <Textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, description: e.target.value }))
-              }
-              placeholder="介绍一下自己"
-              rows={3}
-            />
+            <Textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="介绍一下自己" rows={3} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <Save className="mr-2 h-4 w-4" />
@@ -219,21 +202,132 @@ function BasicInfoUpdateModal({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Phone Modal                                                      */
+/* ------------------------------------------------------------------ */
+
+function PhoneModal({ open, onOpenChange, onSuccess }: { open: boolean; onOpenChange: (v: boolean) => void; onSuccess: () => void }) {
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({ phone: '', captcha: '', oldPassword: '' })
+
+  const handleSave = async () => {
+    if (!form.phone || !form.oldPassword) {
+      toast.error('请填写完整')
+      return
+    }
+    setSaving(true)
+    try {
+      await updatePhone({ ...form, oldPassword: encryptByRsa(form.oldPassword) || form.oldPassword })
+      toast.success('手机号修改成功')
+      onOpenChange(false)
+      setForm({ phone: '', captcha: '', oldPassword: '' })
+      onSuccess()
+    } catch {
+      // handled by interceptor
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>修改手机号</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label>新手机号</Label>
+            <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="请输入新手机号" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>验证码</Label>
+            <Input value={form.captcha} onChange={(e) => setForm((p) => ({ ...p, captcha: e.target.value }))} placeholder="请输入验证码" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>当前密码</Label>
+            <Input type="password" value={form.oldPassword} onChange={(e) => setForm((p) => ({ ...p, oldPassword: e.target.value }))} placeholder="请输入当前密码" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            确认修改
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Email Modal                                                      */
+/* ------------------------------------------------------------------ */
+
+function EmailModal({ open, onOpenChange, onSuccess }: { open: boolean; onOpenChange: (v: boolean) => void; onSuccess: () => void }) {
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({ email: '', captcha: '', oldPassword: '' })
+
+  const handleSave = async () => {
+    if (!form.email || !form.oldPassword) {
+      toast.error('请填写完整')
+      return
+    }
+    setSaving(true)
+    try {
+      await updateEmail({ ...form, oldPassword: encryptByRsa(form.oldPassword) || form.oldPassword })
+      toast.success('邮箱修改成功')
+      onOpenChange(false)
+      setForm({ email: '', captcha: '', oldPassword: '' })
+      onSuccess()
+    } catch {
+      // handled by interceptor
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>修改邮箱</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label>新邮箱</Label>
+            <Input value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="请输入新邮箱" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>验证码</Label>
+            <Input value={form.captcha} onChange={(e) => setForm((p) => ({ ...p, captcha: e.target.value }))} placeholder="请输入验证码" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>当前密码</Label>
+            <Input type="password" value={form.oldPassword} onChange={(e) => setForm((p) => ({ ...p, oldPassword: e.target.value }))} placeholder="请输入当前密码" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            确认修改
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Password Modal                                                   */
 /* ------------------------------------------------------------------ */
 
-interface PasswordModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
+function PasswordModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const navigate = useNavigate()
+  const logout = useUserStore((s) => s.logout)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
+  const [form, setForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' })
 
   const handleSave = async () => {
     if (!form.oldPassword || !form.newPassword) {
@@ -247,12 +341,14 @@ function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
     setSaving(true)
     try {
       await updatePassword({
-        oldPassword: form.oldPassword,
-        newPassword: form.newPassword,
+        oldPassword: encryptByRsa(form.oldPassword) || form.oldPassword,
+        newPassword: encryptByRsa(form.newPassword) || form.newPassword,
       })
-      toast.success('密码修改成功')
+      toast.success('密码修改成功，请重新登录')
       onOpenChange(false)
       setForm({ oldPassword: '', newPassword: '', confirmPassword: '' })
+      logout()
+      navigate('/login')
     } catch {
       // handled by interceptor
     } finally {
@@ -269,42 +365,19 @@ function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
             <Label>旧密码</Label>
-            <Input
-              type="password"
-              value={form.oldPassword}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, oldPassword: e.target.value }))
-              }
-              placeholder="请输入旧密码"
-            />
+            <Input type="password" value={form.oldPassword} onChange={(e) => setForm((p) => ({ ...p, oldPassword: e.target.value }))} placeholder="请输入旧密码" />
           </div>
           <div className="space-y-1.5">
             <Label>新密码</Label>
-            <Input
-              type="password"
-              value={form.newPassword}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, newPassword: e.target.value }))
-              }
-              placeholder="请输入新密码"
-            />
+            <Input type="password" value={form.newPassword} onChange={(e) => setForm((p) => ({ ...p, newPassword: e.target.value }))} placeholder="请输入新密码" />
           </div>
           <div className="space-y-1.5">
             <Label>确认密码</Label>
-            <Input
-              type="password"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, confirmPassword: e.target.value }))
-              }
-              placeholder="请确认新密码"
-            />
+            <Input type="password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} placeholder="请确认新密码" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             确认修改
@@ -319,10 +392,18 @@ function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
 /*  Main Profile Page                                                */
 /* ------------------------------------------------------------------ */
 
-const genderLabel: Record<number, string> = {
-  0: '未知',
-  1: '男',
-  2: '女',
+const genderLabel: Record<number, string> = { 0: '未知', 1: '男', 2: '女' }
+
+const SOCIAL_ICONS: Record<string, React.ReactNode> = {
+  gitee: <GitBranch className="h-4 w-4" />,
+  github: <GitFork className="h-4 w-4" />,
+  wechat: <MessageCircle className="h-4 w-4" />,
+}
+
+const SOCIAL_LABELS: Record<string, string> = {
+  gitee: 'Gitee',
+  github: 'GitHub',
+  wechat: '微信',
 }
 
 export default function ProfilePage() {
@@ -341,10 +422,21 @@ export default function ProfilePage() {
   // Modals
   const [basicInfoOpen, setBasicInfoOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
+  const [phoneOpen, setPhoneOpen] = useState(false)
+  const [emailOpen, setEmailOpen] = useState(false)
+
+  // Social accounts
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([])
 
   useEffect(() => {
     fetchUserInfo()
   }, [fetchUserInfo])
+
+  useEffect(() => {
+    listUserSocial()
+      .then((res) => setSocialAccounts(res.data || []))
+      .catch(() => {})
+  }, [])
 
   const onCropComplete = useCallback((_croppedArea: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
@@ -380,6 +472,18 @@ export default function ProfilePage() {
     }
   }
 
+  const handleUnbindSocial = async (source: string) => {
+    try {
+      await unbindSocialAccount(source)
+      toast.success('解绑成功')
+      setSocialAccounts((prev) => prev.filter((s) => s.source !== source))
+    } catch {
+      // handled by interceptor
+    }
+  }
+
+  const getSocialAccount = (source: string) => socialAccounts.find((s) => s.source === source)
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -392,33 +496,20 @@ export default function ProfilePage() {
         {/* ---- Left Column: Avatar Card ---- */}
         <Card className="lg:col-span-1 rounded">
           <CardContent className="p-6 flex flex-col items-center text-center">
-            <div
-              className="relative group cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <Avatar className="h-24 w-24">
                 <AvatarImage src={userInfo?.avatar} />
                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                  {userInfo?.nickname?.[0] ||
-                    userInfo?.username?.[0] ||
-                    'U'}
+                  {userInfo?.nickname?.[0] || userInfo?.username?.[0] || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="h-6 w-6 text-white" />
               </div>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
-            <h2 className="text-lg font-medium mt-4">
-              {userInfo?.nickname || userInfo?.username}
-            </h2>
+            <h2 className="text-lg font-medium mt-4">{userInfo?.nickname || userInfo?.username}</h2>
 
             <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
               <Building2 className="h-3.5 w-3.5" />
@@ -427,12 +518,7 @@ export default function ProfilePage() {
 
             <div className="flex flex-wrap justify-center gap-1.5 mt-3">
               {userInfo?.roleNames?.map((r: string) => (
-                <span
-                  key={r}
-                  className="inline-block rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
-                >
-                  {r}
-                </span>
+                <span key={r} className="inline-block rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{r}</span>
               ))}
             </div>
           </CardContent>
@@ -447,11 +533,7 @@ export default function ProfilePage() {
                 <User className="h-4 w-4" />
                 基本信息
               </CardTitle>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setBasicInfoOpen(true)}
-              >
+              <Button size="sm" variant="outline" onClick={() => setBasicInfoOpen(true)}>
                 <Pencil className="h-4 w-4 mr-1" />
                 编辑
               </Button>
@@ -459,30 +541,13 @@ export default function ProfilePage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-y-5 gap-x-8">
                 <InfoItem label="昵称" value={userInfo?.nickname} />
-                <InfoItem
-                  label="性别"
-                  value={genderLabel[userInfo?.gender ?? 0]}
-                />
+                <InfoItem label="性别" value={genderLabel[userInfo?.gender ?? 0]} />
                 <InfoItem label="邮箱" value={userInfo?.email} />
                 <InfoItem label="手机号" value={userInfo?.phone} />
-                <InfoItem
-                  label="个人描述"
-                  value={(userInfo as any)?.description}
-                  className="col-span-2"
-                />
-                <InfoItem
-                  label="所属部门"
-                  value={(userInfo as any)?.deptName}
-                />
-                <InfoItem
-                  label="角色"
-                  value={userInfo?.roleNames?.join('、')}
-                />
-                <InfoItem
-                  label="注册时间"
-                  value={(userInfo as any)?.createTime}
-                  className="col-span-2"
-                />
+                <InfoItem label="个人描述" value={(userInfo as any)?.description} className="col-span-2" />
+                <InfoItem label="所属部门" value={(userInfo as any)?.deptName} />
+                <InfoItem label="角色" value={userInfo?.roleNames?.join('、')} />
+                <InfoItem label="注册时间" value={(userInfo as any)?.createTime} className="col-span-2" />
               </div>
             </CardContent>
           </Card>
@@ -499,24 +564,18 @@ export default function ProfilePage() {
               <SecurityRow
                 icon={<Smartphone className="h-4 w-4" />}
                 label="手机绑定"
-                description={
-                  userInfo?.phone
-                    ? `已绑定：${userInfo.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}`
-                    : '未绑定手机号'
-                }
+                description={userInfo?.phone ? `已绑定：${userInfo.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}` : '未绑定手机号'}
                 bound={!!userInfo?.phone}
                 actionLabel={userInfo?.phone ? '更换' : '绑定'}
+                onAction={() => setPhoneOpen(true)}
               />
               <SecurityRow
                 icon={<Mail className="h-4 w-4" />}
                 label="邮箱绑定"
-                description={
-                  userInfo?.email
-                    ? `已绑定：${userInfo.email}`
-                    : '未绑定邮箱'
-                }
+                description={userInfo?.email ? `已绑定：${userInfo.email}` : '未绑定邮箱'}
                 bound={!!userInfo?.email}
                 actionLabel={userInfo?.email ? '更换' : '绑定'}
+                onAction={() => setEmailOpen(true)}
               />
               <SecurityRow
                 icon={<KeyRound className="h-4 w-4" />}
@@ -538,21 +597,19 @@ export default function ProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 divide-y">
-              <SocialRow
-                icon={<GitBranch className="h-4 w-4" />}
-                label="Gitee"
-                bound={false}
-              />
-              <SocialRow
-                icon={<GitFork className="h-4 w-4" />}
-                label="GitHub"
-                bound={false}
-              />
-              <SocialRow
-                icon={<MessageCircle className="h-4 w-4" />}
-                label="微信"
-                bound={false}
-              />
+              {['gitee', 'github', 'wechat'].map((source) => {
+                const account = getSocialAccount(source)
+                return (
+                  <SocialRow
+                    key={source}
+                    icon={SOCIAL_ICONS[source] || <Link2 className="h-4 w-4" />}
+                    label={SOCIAL_LABELS[source] || source}
+                    bound={!!account}
+                    nickname={account?.socialNickname}
+                    onUnbind={() => handleUnbindSocial(source)}
+                  />
+                )
+              })}
             </CardContent>
           </Card>
         </div>
@@ -566,58 +623,28 @@ export default function ProfilePage() {
           </DialogHeader>
           <div className="relative h-72 w-full bg-muted rounded overflow-hidden">
             {avatarSrc && (
-              <Cropper
-                image={avatarSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-              />
+              <Cropper image={avatarSrc} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete} />
             )}
           </div>
           <div className="flex items-center gap-4">
-            <Label className="text-xs text-muted-foreground whitespace-nowrap">
-              缩放
-            </Label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
+            <Label className="text-xs text-muted-foreground whitespace-nowrap">缩放</Label>
+            <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full accent-primary" />
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setAvatarDialogOpen(false)}
-            >
-              取消
-            </Button>
+            <Button variant="outline" onClick={() => setAvatarDialogOpen(false)}>取消</Button>
             <Button onClick={handleUploadAvatar} disabled={uploading}>
-              {uploading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               确认上传
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Basic Info Modal */}
-      <BasicInfoUpdateModal
-        open={basicInfoOpen}
-        onOpenChange={setBasicInfoOpen}
-        userInfo={userInfo}
-        onSuccess={fetchUserInfo}
-      />
-
-      {/* Password Modal */}
+      {/* Modals */}
+      <BasicInfoUpdateModal open={basicInfoOpen} onOpenChange={setBasicInfoOpen} userInfo={userInfo} onSuccess={fetchUserInfo} />
       <PasswordModal open={passwordOpen} onOpenChange={setPasswordOpen} />
+      <PhoneModal open={phoneOpen} onOpenChange={setPhoneOpen} onSuccess={fetchUserInfo} />
+      <EmailModal open={emailOpen} onOpenChange={setEmailOpen} onSuccess={fetchUserInfo} />
     </div>
   )
 }
@@ -626,15 +653,7 @@ export default function ProfilePage() {
 /*  Sub-components                                                   */
 /* ------------------------------------------------------------------ */
 
-function InfoItem({
-  label,
-  value,
-  className,
-}: {
-  label: string
-  value?: string | null
-  className?: string
-}) {
+function InfoItem({ label, value, className }: { label: string; value?: string | null; className?: string }) {
   return (
     <div className={className}>
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
@@ -643,77 +662,48 @@ function InfoItem({
   )
 }
 
-function SecurityRow({
-  icon,
-  label,
-  description,
-  bound,
-  actionLabel,
-  onAction,
-}: {
-  icon: React.ReactNode
-  label: string
-  description: string
-  bound: boolean
-  actionLabel: string
-  onAction?: () => void
+function SecurityRow({ icon, label, description, bound, actionLabel, onAction }: {
+  icon: React.ReactNode; label: string; description: string; bound: boolean; actionLabel: string; onAction?: () => void
 }) {
   return (
     <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded bg-muted text-muted-foreground">
-          {icon}
-        </div>
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-muted text-muted-foreground">{icon}</div>
         <div>
           <p className="text-sm font-medium text-foreground">{label}</p>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
       </div>
-      <Button size="sm" variant="outline" onClick={onAction}>
-        {actionLabel}
-      </Button>
+      <Button size="sm" variant="outline" onClick={onAction}>{actionLabel}</Button>
     </div>
   )
 }
 
-function SocialRow({
-  icon,
-  label,
-  bound,
-}: {
-  icon: React.ReactNode
-  label: string
-  bound: boolean
+function SocialRow({ icon, label, bound, nickname, onUnbind }: {
+  icon: React.ReactNode; label: string; bound: boolean; nickname?: string; onUnbind?: () => void
 }) {
   return (
     <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded bg-muted text-muted-foreground">
-          {icon}
-        </div>
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-muted text-muted-foreground">{icon}</div>
         <div>
           <p className="text-sm font-medium text-foreground">{label}</p>
           <p className="text-xs text-muted-foreground">
-            {bound ? '已绑定' : '未绑定'}
+            {bound ? `已绑定：${nickname || ''}` : '未绑定'}
           </p>
         </div>
       </div>
-      <Button
-        size="sm"
-        variant={bound ? 'outline' : 'default'}
-      >
-        {bound ? (
-          <>
-            <Unlink className="h-3.5 w-3.5 mr-1" />
-            解绑
-          </>
-        ) : (
-          <>
-            <Link2 className="h-3.5 w-3.5 mr-1" />
-            绑定
-          </>
-        )}
-      </Button>
+      {bound ? (
+        <Button size="sm" variant="outline" onClick={onUnbind}>
+          <Unlink className="h-3.5 w-3.5 mr-1" />
+          解绑
+        </Button>
+      ) : (
+        <Button size="sm" variant="default">
+          <Link2 className="h-3.5 w-3.5 mr-1" />
+          绑定
+        </Button>
+      )}
     </div>
   )
 }

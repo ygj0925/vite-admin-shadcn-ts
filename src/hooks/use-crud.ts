@@ -10,7 +10,7 @@ interface UseCrudOptions<T, Q extends PageQuery> {
   onSuccess?: () => void
 }
 
-export function useCrud<T extends { id: string | number }, Q extends PageQuery>({
+export function useCrud<T, Q extends PageQuery>({
   listApi,
   deleteApi,
   exportApi,
@@ -97,5 +97,6 @@ export function useCrud<T extends { id: string | number }, Q extends PageQuery>(
     handleSizeChange,
     handleDelete,
     handleExport,
+    refresh: fetchData,
   }
 }

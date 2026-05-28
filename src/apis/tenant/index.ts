@@ -5,16 +5,21 @@ export interface Tenant {
   id: number
   name: string
   code: string
+  domain?: string
   status: number
   contactName: string
   contactPhone: string
   contactEmail: string
   packageName: string
   packageId: number
-  expireTime: string
+  expireTime?: string
   accountLimit: number
   description: string
+  adminUsername?: string
+  createUserString?: string
+  updateUserString?: string
   createTime: string
+  updateTime?: string
 }
 
 export function getTenantPage(params: PageQuery) {
@@ -25,7 +30,7 @@ export function getTenantById(id: number) {
   return get<Tenant>(`/tenant/management/${id}`)
 }
 
-export function addTenant(data: Partial<Tenant>) {
+export function addTenant(data: Partial<Tenant> & { adminPassword?: string }) {
   return post('/tenant/management', data)
 }
 
@@ -37,6 +42,6 @@ export function deleteTenant(id: number) {
   return del(`/tenant/management/${id}`)
 }
 
-export function resetTenantAdminPwd(id: number, password: string) {
-  return put(`/tenant/management/${id}/admin/pwd`, { password })
+export function resetTenantAdminPwd(id: number, data: { password: string }) {
+  return put(`/tenant/management/${id}/admin/pwd`, data)
 }

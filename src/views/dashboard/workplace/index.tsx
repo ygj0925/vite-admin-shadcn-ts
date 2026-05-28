@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   Users,
   Shield,
@@ -20,10 +21,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useUserStore } from '@/stores/user'
-
-/* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
-/* ------------------------------------------------------------------ */
+import { getDashboardNotice, type DashboardNotice } from '@/apis/common/dashboard'
 
 const quotes = [
   '每一个不曾起舞的日子，都是对生命的辜负。',
@@ -65,14 +63,6 @@ const quickLinks = [
   { label: '系统配置', icon: Settings, path: '/system/config', permission: 'system:config:list' },
 ]
 
-const notices = [
-  { id: 1, title: '系统将于本周六凌晨 2:00 进行维护升级', time: '2 小时前', type: '通知' },
-  { id: 2, title: 'v2.3.0 版本已发布，包含多项功能优化', time: '1 天前', type: '公告' },
-  { id: 3, title: '请各部门尽快完成年度数据备份工作', time: '2 天前', type: '通知' },
-  { id: 4, title: '新功能上线：支持批量导入用户数据', time: '3 天前', type: '公告' },
-  { id: 5, title: '安全提醒：请定期更换系统密码', time: '5 天前', type: '通知' },
-]
-
 const TESLA_BLUE = '#3E6AE1'
 
 const carouselItems = [
@@ -80,10 +70,6 @@ const carouselItems = [
   { title: '开发者大会 2026', desc: '6 月 15 日，线上直播，免费报名', color: '#171A20' },
   { title: '插件市场全新上线', desc: '海量插件，一键安装，生态共建', color: '#5C5E62' },
 ]
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -94,10 +80,6 @@ function getGreeting(): string {
   return '晚上好'
 }
 
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
-
 export default function WorkplacePage() {
   const userInfo = useUserStore((s) => s.userInfo)
   const permissions = useUserStore((s) => s.permissions)
@@ -105,14 +87,28 @@ export default function WorkplacePage() {
   const greeting = getGreeting()
   const quote = quotes[Math.floor(Math.random() * quotes.length)]
 
+  const [notices, setNotices] = useState<DashboardNotice[]>([])
+
+  useEffect(() => {
+    getDashboardNotice()
+      .then((res) => setNotices(res.data || []))
+      .catch(() => {})
+  }, [])
+
   const hasPermission = (perm: string) =>
     permissions.includes('*:*:*') || permissions.includes(perm)
 
+  const noticeTypeLabel = (type: number) => {
+    switch (type) {
+      case 1: return '通知'
+      case 2: return '公告'
+      default: return '消息'
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* -------------------------------------------------------------- */}
-      {/*  Welcome banner                                                 */}
-      {/* -------------------------------------------------------------- */}
+      {/* Welcome banner */}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -135,9 +131,7 @@ export default function WorkplacePage() {
         </CardContent>
       </Card>
 
-      {/* -------------------------------------------------------------- */}
-      {/*  Two-column layout                                              */}
-      {/* -------------------------------------------------------------- */}
+      {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
         {/* LEFT COLUMN */}
         <div className="space-y-6">
@@ -261,27 +255,26 @@ export default function WorkplacePage() {
             <CardContent>
               <ScrollArea className="max-h-72">
                 <div className="space-y-0">
-                  {notices.map((n, i) => (
+                  {notices.length > 0 ? notices.map((n, i) => (
                     <div key={n.id}>
                       <div className="flex items-start justify-between gap-3 py-2.5">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <Badge
-                              variant={n.type === '公告' ? 'default' : 'secondary'}
+                              variant={n.type === 2 ? 'default' : 'secondary'}
                               className="text-[10px] px-1.5 h-4"
                             >
-                              {n.type}
+                              {noticeTypeLabel(n.type)}
                             </Badge>
                             <span className="text-sm truncate">{n.title}</span>
                           </div>
                         </div>
-                        <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
-                          {n.time}
-                        </span>
                       </div>
                       {i < notices.length - 1 && <Separator />}
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">暂无通知</p>
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
@@ -296,7 +289,6 @@ export default function WorkplacePage() {
               >
                 <p className="text-base font-medium">{carouselItems[0].title}</p>
                 <p className="mt-1 text-sm opacity-80">{carouselItems[0].desc}</p>
-                {/* Dot indicators */}
                 <div className="absolute bottom-3 flex gap-1.5">
                   {carouselItems.map((_, i) => (
                     <span
