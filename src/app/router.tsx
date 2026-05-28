@@ -31,6 +31,15 @@ const RoleTreePage = lazy(() => import('@/views/system/role/tree'))
 const UserDeptPage = lazy(() => import('@/views/system/user/dept'))
 const MonitorLogPage = lazy(() => import('@/views/monitor/log/index'))
 
+// APP pages
+const AppHomePage = lazy(() => import('@/views/app/home/index'))
+const AppAiChatPage = lazy(() => import('@/views/app/ai-chat/index'))
+const AppSchedulePage = lazy(() => import('@/views/app/schedule/index'))
+const AppInfoPage = lazy(() => import('@/views/app/info/index'))
+const AppInfoDetailPage = lazy(() => import('@/views/app/info/detail'))
+const AppProfilePage = lazy(() => import('@/views/app/profile/index'))
+const AppSettingsPage = lazy(() => import('@/views/app/profile/settings'))
+
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
 
@@ -189,6 +198,20 @@ export function AppRouter() {
           {
             path: 'monitor/log',
             element: wrap(MonitorLogPage),
+          },
+          {
+            path: 'app',
+            element: <Outlet />,
+            children: [
+              { index: true, element: <Navigate to="/app/home" replace /> },
+              { path: 'home', element: wrap(AppHomePage) },
+              { path: 'ai-chat', element: wrap(AppAiChatPage) },
+              { path: 'schedule', element: wrap(AppSchedulePage) },
+              { path: 'info', element: wrap(AppInfoPage) },
+              { path: 'info/:id', element: wrap(AppInfoDetailPage) },
+              { path: 'profile', element: wrap(AppProfilePage) },
+              { path: 'settings', element: wrap(AppSettingsPage) },
+            ],
           },
           {
             path: 'redirect/:path',
