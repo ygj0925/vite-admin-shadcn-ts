@@ -74,6 +74,7 @@ export function EventModal({
   useEffect(() => {
     if (open) {
       if (initialEvent) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForm({
           title: initialEvent.title,
           date: initialEvent.date,

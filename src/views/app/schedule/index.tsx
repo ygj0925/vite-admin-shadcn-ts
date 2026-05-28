@@ -406,7 +406,7 @@ export default function AppSchedule() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         initialDate={selectedDateKey}
-        initialEvent={editingEvent}
+        initialEvent={editingEvent ?? undefined}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
       />

@@ -50,3 +50,7 @@ export function getFileStatistics() {
 export function checkFileHash(fileHash: string) {
   return get<{ uploaded: boolean; url?: string }>('/system/file/check', { fileHash })
 }
+
+export function createDir(parentPath: string, name: string) {
+  return post<FileInfo>('/system/file/dir', { parentPath, originalName: name })
+}

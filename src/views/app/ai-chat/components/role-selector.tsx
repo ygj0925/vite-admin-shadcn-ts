@@ -19,6 +19,7 @@ export interface AiRole {
   prompts: string[]
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AI_ROLES: AiRole[] = [
   {
     id: 'general',

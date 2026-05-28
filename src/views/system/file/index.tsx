@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { DeleteConfirm } from '@/components/delete-confirm'
 import {
-  getFilePage, uploadFile, updateFile, deleteFile, getFileStatistics,
+  getFilePage, uploadFile, updateFile, deleteFile, getFileStatistics, createDir,
   type FileInfo, type FileStatistics,
 } from '@/apis/system/file'
 import type { PageQuery } from '@/types/api'
@@ -772,6 +772,10 @@ export default function FilePage() {
     visible: false, x: 0, y: 0, file: null,
   })
 
+  // Create folder dialog
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false)
+  const [folderName, setFolderName] = useState('')
+
   // Dialogs
   const [previewFile, setPreviewFile] = useState<FileInfo | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -1038,9 +1042,18 @@ export default function FilePage() {
     }
   }
 
-  // Create folder (stub - requires backend support)
-  const handleCreateFolder = () => {
-    toast.info('新建文件夹功能待后端支持')
+  // Create folder
+  const handleCreateFolder = async () => {
+    if (!folderName.trim()) { toast.warning('请输入文件夹名称'); return }
+    try {
+      await createDir(folderPath, folderName.trim())
+      toast.success('文件夹创建成功')
+      setFolderDialogOpen(false)
+      setFolderName('')
+      fetchData()
+    } catch {
+      // handled by interceptor
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1109,7 +1122,7 @@ export default function FilePage() {
           <Separator orientation="vertical" className="h-5" />
 
           {/* Create folder */}
-          <Button variant="outline" size="sm" onClick={handleCreateFolder}>
+          <Button variant="outline" size="sm" onClick={() => setFolderDialogOpen(true)}>
             <FolderPlus className="h-4 w-4 mr-1" />
             新建文件夹
           </Button>
@@ -1313,6 +1326,30 @@ export default function FilePage() {
         count={deleteTargets.length}
         onConfirm={handleDeleteConfirm}
       />
+
+      {/* Create Folder Dialog */}
+      <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>新建文件夹</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="folderName">文件夹名称</Label>
+            <Input
+              id="folderName"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="请输入文件夹名称"
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setFolderDialogOpen(false); setFolderName('') }}>取消</Button>
+            <Button onClick={handleCreateFolder}>确定</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -102,7 +102,7 @@ export default function AppHome() {
   const userInfo = useUserStore((s) => s.userInfo)
   const nickname = userInfo?.nickname || userInfo?.username || '用户'
   const greeting = getGreeting()
-  const quote = quotes[Math.floor(Math.random() * quotes.length)]
+  const [quote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)])
 
   const [notices, setNotices] = useState<DashboardNotice[]>([])
   const [carouselIndex, setCarouselIndex] = useState(0)

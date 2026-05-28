@@ -15,6 +15,7 @@ export interface CalendarEvent {
   description?: string
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const CATEGORY_CONFIG: Record<
   EventCategory,
   { label: string; color: string; dot: string; bg: string }

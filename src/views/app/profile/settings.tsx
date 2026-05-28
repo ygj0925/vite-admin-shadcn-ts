@@ -47,7 +47,7 @@ export default function AppSettings() {
 
   const handleSaveProfile = async () => {
     if (!formNickname.trim()) {
-      toast({ title: '请输入昵称', variant: 'destructive' })
+      toast.error('请输入昵称')
       return
     }
     setSaving(true)
@@ -66,9 +66,9 @@ export default function AppSettings() {
           phone: formPhone.trim(),
         })
       }
-      toast({ title: '保存成功' })
+      toast('保存成功')
     } catch {
-      toast({ title: '保存失败', variant: 'destructive' })
+      toast.error('保存失败')
     } finally {
       setSaving(false)
     }
@@ -76,30 +76,30 @@ export default function AppSettings() {
 
   const handleChangePassword = async () => {
     if (!oldPassword) {
-      toast({ title: '请输入原密码', variant: 'destructive' })
+      toast.error('请输入原密码')
       return
     }
     if (!newPassword) {
-      toast({ title: '请输入新密码', variant: 'destructive' })
+      toast.error('请输入新密码')
       return
     }
     if (newPassword !== confirmPassword) {
-      toast({ title: '两次密码输入不一致', variant: 'destructive' })
+      toast.error('两次密码输入不一致')
       return
     }
     if (newPassword.length < 6) {
-      toast({ title: '密码长度不能少于6位', variant: 'destructive' })
+      toast.error('密码长度不能少于6位')
       return
     }
     setChangingPassword(true)
     try {
       await updatePassword({ oldPassword, newPassword })
-      toast({ title: '密码修改成功' })
+      toast('密码修改成功')
       setOldPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch {
-      toast({ title: '密码修改失败', variant: 'destructive' })
+      toast.error('密码修改失败')
     } finally {
       setChangingPassword(false)
     }
