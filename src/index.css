@@ -264,40 +264,38 @@ code {
     @apply font-sans;}
 }
 
-@layer base {
-  :root {
-    /* APP Design System Colors */
-    --app-bg-dark: #0a0a0f;
-    --app-bg-dark-secondary: #1a1a2e;
-    --app-bg-light: #fafafa;
-    --app-card-dark: #16171d;
-    --app-card-light: #ffffff;
-    --app-primary: #7c3aed;
-    --app-secondary: #3b82f6;
-    --app-accent-purple: #a855f7;
-    --app-accent-blue: #06b6d4;
-    --app-accent-orange: #f97316;
-    --app-accent-red: #ef4444;
-    --app-accent-green: #22c55e;
-    --app-text-primary-dark: #ffffff;
-    --app-text-secondary-dark: #a1a1aa;
-    --app-text-primary-light: #18181b;
-    --app-text-secondary-light: #71717a;
-  }
+/* APP Design System Colors */
+:root {
+  --app-bg-dark: #0a0a0f;
+  --app-bg-dark-secondary: #1a1a2e;
+  --app-bg-light: #fafafa;
+  --app-card-dark: #16171d;
+  --app-card-light: #ffffff;
+  --app-primary: #7c3aed;
+  --app-secondary: #3b82f6;
+  --app-accent-purple: #a855f7;
+  --app-accent-blue: #06b6d4;
+  --app-accent-orange: #f97316;
+  --app-accent-red: #ef4444;
+  --app-accent-green: #22c55e;
+  --app-text-primary-dark: #ffffff;
+  --app-text-secondary-dark: #a1a1aa;
+  --app-text-primary-light: #18181b;
+  --app-text-secondary-light: #71717a;
+}
 
-  .dark {
-    --app-bg: var(--app-bg-dark);
-    --app-bg-secondary: var(--app-bg-dark-secondary);
-    --app-card: var(--app-card-dark);
-    --app-text-primary: var(--app-text-primary-dark);
-    --app-text-secondary: var(--app-text-secondary-dark);
-  }
+.dark {
+  --app-bg: var(--app-bg-dark);
+  --app-bg-secondary: var(--app-bg-dark-secondary);
+  --app-card: var(--app-card-dark);
+  --app-text-primary: var(--app-text-primary-dark);
+  --app-text-secondary: var(--app-text-secondary-dark);
+}
 
-  .light {
-    --app-bg: var(--app-bg-light);
-    --app-bg-secondary: #f5f5f5;
-    --app-card: var(--app-card-light);
-    --app-text-primary: var(--app-text-primary-light);
-    --app-text-secondary: var(--app-text-secondary-light);
-  }
+.light {
+  --app-bg: var(--app-bg-light);
+  --app-bg-secondary: #f5f5f5;
+  --app-card: var(--app-card-light);
+  --app-text-primary: var(--app-text-primary-light);
+  --app-text-secondary: var(--app-text-secondary-light);
 }
