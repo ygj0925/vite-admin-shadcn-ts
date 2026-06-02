@@ -1,4 +1,5 @@
 import { Settings } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -29,7 +30,7 @@ export function SettingDrawer() {
 
   return (
     <Sheet>
-      <SheetTrigger className="flex h-8 w-8 items-center justify-center rounded hover:bg-accent transition-colors duration-300">
+      <SheetTrigger className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground">
         <Settings className="h-4 w-4" />
       </SheetTrigger>
       <SheetContent>
@@ -38,15 +39,18 @@ export function SettingDrawer() {
         </SheetHeader>
         <div className="space-y-6 p-4">
           <div className="space-y-3">
-            <Label>布局模式</Label>
+            <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">布局模式</Label>
             <div className="grid grid-cols-4 gap-2">
               {layouts.map((l) => (
                 <button
                   key={l.value}
                   onClick={() => setLayout(l.value)}
-                  className={`rounded border px-3 py-1.5 text-xs transition-colors duration-300 ${
-                    layout === l.value ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary'
-                  }`}
+                  className={cn(
+                    'rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200',
+                    layout === l.value
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                  )}
                 >
                   {l.label}
                 </button>
@@ -55,15 +59,18 @@ export function SettingDrawer() {
           </div>
           <Separator />
           <div className="space-y-3">
-            <Label>标签页样式</Label>
+            <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">标签页样式</Label>
             <div className="grid grid-cols-3 gap-2">
               {tabModes.map((t) => (
                 <button
                   key={t.value}
                   onClick={() => setTabMode(t.value)}
-                  className={`rounded border px-3 py-1.5 text-xs transition-colors duration-300 ${
-                    tabMode === t.value ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary'
-                  }`}
+                  className={cn(
+                    'rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200',
+                    tabMode === t.value
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                  )}
                 >
                   {t.label}
                 </button>
@@ -72,15 +79,18 @@ export function SettingDrawer() {
           </div>
           <Separator />
           <div className="space-y-3">
-            <Label>页面动画</Label>
+            <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">页面动画</Label>
             <div className="grid grid-cols-4 gap-2">
               {animateModes.map((a) => (
                 <button
                   key={a.value}
                   onClick={() => setAnimateMode(a.value)}
-                  className={`rounded border px-3 py-1.5 text-xs transition-colors duration-300 ${
-                    animateMode === a.value ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary'
-                  }`}
+                  className={cn(
+                    'rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200',
+                    animateMode === a.value
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                  )}
                 >
                   {a.label}
                 </button>
@@ -89,12 +99,20 @@ export function SettingDrawer() {
           </div>
           <Separator />
           <div className="flex items-center justify-between">
-            <Label>显示标签页</Label>
+            <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">显示标签页</Label>
             <button
               onClick={() => setTab(!tab)}
-              className={`relative h-5 w-9 rounded-full transition-colors duration-300 ${tab ? 'bg-primary' : 'bg-input'}`}
+              className={cn(
+                'relative h-6 w-11 rounded-full transition-colors duration-200',
+                tab ? 'bg-primary' : 'bg-input'
+              )}
             >
-              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-300 ${tab ? 'left-4.5' : 'left-0.5'}`} />
+              <span
+                className={cn(
+                  'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200',
+                  tab ? 'translate-x-5.5' : 'translate-x-0.5'
+                )}
+              />
             </button>
           </div>
         </div>

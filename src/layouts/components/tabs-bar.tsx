@@ -25,31 +25,30 @@ export function TabsBar() {
   }
 
   const handleReload = () => {
-    // Force re-render by navigating away and back
     navigate('/redirect' + location.pathname)
   }
 
   if (openTabs.length === 0) return null
 
   return (
-    <div className="flex h-9 items-center border-b bg-background">
+    <div className="flex h-10 items-center border-b border-border/60 bg-muted/30">
       <ScrollArea className="flex-1 whitespace-nowrap">
-        <div className="flex items-center gap-0.5 px-2">
+        <div className="flex items-center gap-1 px-3">
           {openTabs.map((tab) => (
             <button
               key={tab.path}
               onClick={() => handleTabClick(tab.path)}
               className={cn(
-                'flex h-7 items-center gap-1 rounded px-2.5 text-xs transition-colors duration-300',
+                'group flex h-7 items-center gap-1.5 rounded-md px-3 text-xs transition-all duration-200',
                 activeTab === tab.path
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent text-muted-foreground'
+                  ? 'bg-background text-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground hover:bg-background/60 hover:text-foreground'
               )}
             >
               <span className="max-w-24 truncate">{tab.title}</span>
               {!tab.affix && (
                 <X
-                  className="h-3 w-3 shrink-0 hover:text-destructive"
+                  className="h-3 w-3 shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-destructive"
                   onClick={(e) => handleClose(e, tab.path)}
                 />
               )}
@@ -59,7 +58,7 @@ export function TabsBar() {
         <ScrollBar orientation="horizontal" className="h-0" />
       </ScrollArea>
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex h-7 w-7 items-center justify-center rounded hover:bg-accent transition-colors duration-300 mx-1">
+        <DropdownMenuTrigger className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground mx-2">
           <MoreHorizontal className="h-3.5 w-3.5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">

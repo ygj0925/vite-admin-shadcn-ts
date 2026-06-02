@@ -16,6 +16,7 @@ interface AppState {
   animateMode: AnimateMode
   themeColor: string
   menuAccordion: boolean
+  mobileSidebarOpen: boolean
   setLayout: (layout: LayoutMode) => void
   setTheme: (theme: ThemeMode) => void
   toggleTheme: () => void
@@ -27,6 +28,8 @@ interface AppState {
   setAnimateMode: (mode: AnimateMode) => void
   setThemeColor: (color: string) => void
   setMenuAccordion: (accordion: boolean) => void
+  setMobileSidebarOpen: (open: boolean) => void
+  toggleMobileSidebar: () => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -41,6 +44,7 @@ export const useAppStore = create<AppState>()(
       animateMode: 'fade',
       themeColor: '#3E6AE1',
       menuAccordion: false,
+      mobileSidebarOpen: false,
 
       setLayout: (layout) => set({ layout }),
       setTheme: (theme) => {
@@ -59,6 +63,8 @@ export const useAppStore = create<AppState>()(
       setAnimateMode: (animateMode) => set({ animateMode }),
       setThemeColor: (themeColor) => set({ themeColor }),
       setMenuAccordion: (menuAccordion) => set({ menuAccordion }),
+      setMobileSidebarOpen: (mobileSidebarOpen) => set({ mobileSidebarOpen }),
+      toggleMobileSidebar: () => set((s) => ({ mobileSidebarOpen: !s.mobileSidebarOpen })),
     }),
     {
       name: 'continew-app',
