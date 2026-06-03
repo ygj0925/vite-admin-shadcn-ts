@@ -1,43 +1,52 @@
+import { useLocation } from 'react-router-dom'
 import { PanelLeft, Menu } from 'lucide-react'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { useAppStore } from '@/stores/app'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { AppBreadcrumb } from './breadcrumb'
 import { ThemeToggle } from './theme-toggle'
 import { UserDropdown } from './user-dropdown'
+import { MobileNav } from './mobile-nav'
 
-interface AppHeaderProps {
-  /** 移动端点击汉堡按钮的回调；桌面端不传则使用全局折叠 */
-  onMenuClick?: () => void
-}
-
-export function AppHeader({ onMenuClick }: AppHeaderProps) {
-  const toggleMenuCollapse = useAppStore((s) => s.toggleMenuCollapse)
+export function AppHeader() {
+  const location = useLocation()
   const isMobile = useIsMobile()
+  const isAppPage = location.pathname.startsWith('/app')
 
-  const handleClick = () => {
-    if (isMobile && onMenuClick) {
-      onMenuClick()
+  // 桌面端：折叠侧边栏
+  const toggleMenuCollapse = useAppStore((s) => s.toggleMenuCollapse)
+  // 移动端：打开侧边栏 Sheet
+  const toggleMobileSidebar = useAppStore((s) => s.toggleMobileSidebar)
+
+  const handleToggle = () => {
+    if (isMobile) {
+      toggleMobileSidebar()
     } else {
       toggleMenuCollapse()
     }
   }
 
   return (
-    <header className="flex h-12 items-center justify-between border-b bg-background px-3 md:px-4">
-      <div className="flex items-center gap-2 md:gap-3 min-w-0">
-        <button
-          onClick={handleClick}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded hover:bg-accent transition-colors duration-200"
-          aria-label="切换导航菜单"
-        >
-          {isMobile ? <Menu className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-        </button>
-        {!isMobile && <AppBreadcrumb />}
-      </div>
-      <div className="flex items-center gap-1">
-        <ThemeToggle />
-        <UserDropdown />
-      </div>
-    </header>
+    <>
+      <header className="flex h-14 items-center justify-between border-b border-border/60 bg-background/80 px-4 md:px-5 glass">
+        <div className="flex items-center gap-2 md:gap-3">
+          <button
+            onClick={handleToggle}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
+          >
+            {isMobile ? <Menu className="h-5 w-5" /> : <PanelLeft className="h-4 w-4" />}
+          </button>
+          {/* 面包屑：移动端隐藏 */}
+          <div className="hidden md:block">
+            <AppBreadcrumb />
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <div className="mx-1.5 h-5 w-px bg-border/60" />
+          <UserDropdown />
+        </div>
+      </header>
+      {isAppPage && <MobileNav />}
+    </>
   )
 }

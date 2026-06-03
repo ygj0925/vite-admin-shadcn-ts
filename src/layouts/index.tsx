@@ -1,3 +1,4 @@
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAppStore } from '@/stores/app'
 import { DefaultLayout } from './default-layout'
 import { MixLayout } from './mix-layout'
@@ -14,5 +15,9 @@ const layoutMap = {
 export function Layout() {
   const layout = useAppStore((s) => s.layout)
   const LayoutComponent = layoutMap[layout] || DefaultLayout
-  return <LayoutComponent />
+  return (
+    <TooltipProvider delayDuration={0}>
+      <LayoutComponent />
+    </TooltipProvider>
+  )
 }
