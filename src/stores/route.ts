@@ -5,6 +5,7 @@ import type { RouteItem } from '@/types/api'
 interface RouteState {
   dynamicRoutes: RouteItem[]
   flatRoutes: RouteItem[]
+  _hasHydrated: boolean
   setDynamicRoutes: (routes: RouteItem[]) => void
   setFlatRoutes: (routes: RouteItem[]) => void
 }
@@ -49,6 +50,7 @@ export const useRouteStore = create<RouteState>()(
     (set) => ({
       dynamicRoutes: [],
       flatRoutes: [],
+      _hasHydrated: false,
 
       setDynamicRoutes: (routes) => {
         const normalized = routes.map(normalizeRoute)
@@ -71,6 +73,9 @@ export const useRouteStore = create<RouteState>()(
           const normalized = state.dynamicRoutes.map(normalizeRoute)
           state.dynamicRoutes = normalized
           state.flatRoutes = flattenRoutes(normalized)
+        }
+        if (state) {
+          state._hasHydrated = true
         }
       },
     }

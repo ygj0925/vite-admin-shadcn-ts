@@ -53,7 +53,7 @@ function resolveComponent(component: string) {
     }
   }
   console.warn(`[router] 未匹配到视图组件: ${component}`)
-  return NotFoundPage
+  return null
 }
 
 function Loading() {
@@ -224,11 +224,8 @@ export function AppRouter() {
             element: wrap(RedirectPage),
           },
           ...dynamic,
+          { path: '*', element: wrap(NotFoundPage) },
         ],
-      },
-      {
-        path: '*',
-        element: wrap(NotFoundPage),
       },
     ])
   }, [dynamicRoutes])
