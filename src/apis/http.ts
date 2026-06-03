@@ -4,7 +4,7 @@ import { getToken, removeToken } from '@/lib/auth'
 import type { ApiRes } from '@/types/api'
 
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_PREFIX ?? import.meta.env.VITE_API_BASE_URL,
   timeout: 30_000,
 })
 
