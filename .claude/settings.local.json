@@ -35,7 +35,11 @@
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 30)",
       "PowerShell(Remove-Item *)",
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 15)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

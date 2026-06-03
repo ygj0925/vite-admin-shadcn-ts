@@ -9,10 +9,33 @@ interface RouteState {
   setFlatRoutes: (routes: RouteItem[]) => void
 }
 
+// 后端返回的路由字段是扁平的（title/icon/isHidden/isCache/...），
+// 前端组件统一从 route.meta 读取，这里把扁平字段映射到 meta 上。
+function normalizeRoute(route: RouteItem): RouteItem {
+  const meta = {
+    title: route.meta?.title ?? route.title ?? '',
+    icon: route.meta?.icon ?? route.icon,
+    hidden: route.meta?.hidden ?? route.isHidden ?? false,
+    cache: route.meta?.cache ?? route.isCache ?? false,
+    affix: route.meta?.affix ?? false,
+    alwaysShow: route.meta?.alwaysShow ?? false,
+    badge: route.meta?.badge,
+  }
+  return {
+    ...route,
+    meta,
+    children: route.children?.map(normalizeRoute),
+  }
+}
+
 function flattenRoutes(routes: RouteItem[], parentPath = ''): RouteItem[] {
   const result: RouteItem[] = []
   for (const route of routes) {
-    const fullPath = parentPath ? `${parentPath}/${route.path}` : route.path
+    const fullPath = route.path.startsWith('/')
+      ? route.path
+      : parentPath
+        ? `${parentPath}/${route.path}`
+        : `/${route.path}`
     result.push({ ...route, path: fullPath })
     if (route.children) {
       result.push(...flattenRoutes(route.children, fullPath))
@@ -28,9 +51,10 @@ export const useRouteStore = create<RouteState>()(
       flatRoutes: [],
 
       setDynamicRoutes: (routes) => {
+        const normalized = routes.map(normalizeRoute)
         set({
-          dynamicRoutes: routes,
-          flatRoutes: flattenRoutes(routes),
+          dynamicRoutes: normalized,
+          flatRoutes: flattenRoutes(normalized),
         })
       },
 
@@ -41,6 +65,14 @@ export const useRouteStore = create<RouteState>()(
       partialize: (state) => ({
         dynamicRoutes: state.dynamicRoutes,
       }),
+      onRehydrateStorage: () => (state) => {
+        // 历史持久化的数据可能没有 meta 字段，重新归一化一次以保证菜单标题/图标存在
+        if (state && state.dynamicRoutes?.length) {
+          const normalized = state.dynamicRoutes.map(normalizeRoute)
+          state.dynamicRoutes = normalized
+          state.flatRoutes = flattenRoutes(normalized)
+        }
+      },
     }
   )
 )

@@ -23,13 +23,10 @@ const WorkplacePage = lazy(() => import('@/views/dashboard/workplace/index'))
 const AnalysisPage = lazy(() => import('@/views/dashboard/analysis/index'))
 const ITDashboardPage = lazy(() => import('@/views/it-dashboard/index'))
 const ITDashboardTabsPage = lazy(() => import('@/views/it-dashboard/tabs/index'))
-const SystemConfigPage = lazy(() => import('@/views/system/config/index'))
 const DictTreePage = lazy(() => import('@/views/system/dict/tree'))
-const AddNoticePage = lazy(() => import('@/views/system/notice/add'))
 const ViewNoticePage = lazy(() => import('@/views/system/notice/view'))
 const RoleTreePage = lazy(() => import('@/views/system/role/tree'))
 const UserDeptPage = lazy(() => import('@/views/system/user/dept'))
-const MonitorLogPage = lazy(() => import('@/views/monitor/log/index'))
 
 // APP pages
 const AppHomePage = lazy(() => import('@/views/app/home/index'))
@@ -43,19 +40,19 @@ const AppSettingsPage = lazy(() => import('@/views/app/profile/settings'))
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
 
-  // Normalize: strip legacy .vue suffix and trailing /index
-  const normalized = component
-    .replace(/\.vue$/, '')
-    .replace(/\/index$/, '')
-  const key = `../views/${normalized}/index.tsx`
-  if (viewModules[key]) {
-    return lazy(viewModules[key] as () => Promise<{ default: React.ComponentType }>)
+  // 后端 component 字段历史上是 Vue 习惯：'system/user/index' 或带 .vue 后缀。
+  // React 项目里既有 'a/b/index.tsx' 也有扁平 'a/b.tsx'，按下列顺序匹配。
+  const normalized = component.replace(/\.vue$/, '').replace(/\/index$/, '')
+  const candidates = [
+    `../views/${normalized}/index.tsx`,
+    `../views/${normalized}.tsx`,
+  ]
+  for (const key of candidates) {
+    if (viewModules[key]) {
+      return lazy(viewModules[key] as () => Promise<{ default: React.ComponentType }>)
+    }
   }
-  // fallback: try without stripping /index
-  const key2 = `../views/${normalized}.tsx`
-  if (viewModules[key2]) {
-    return lazy(viewModules[key2] as () => Promise<{ default: React.ComponentType }>)
-  }
+  console.warn(`[router] 未匹配到视图组件: ${component}`)
   return NotFoundPage
 }
 
@@ -75,7 +72,7 @@ function wrap(Component: React.ComponentType) {
   )
 }
 
-function buildDynamicRoutes(routes: RouteItem[]): any[] {
+function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   const result: any[] = []
   for (const route of routes) {
     // 适配后端字段：isHidden 或 meta.hidden
@@ -85,8 +82,23 @@ function buildDynamicRoutes(routes: RouteItem[]): any[] {
     // component = "Layout" 表示这是一个父级容器，用 Outlet 渲染子路由
     const isLayoutNode = (route as any).component === 'Layout' || !route.component
 
-    // 去掉路径开头的 /，react-router 嵌套路由用相对路径
-    const relativePath = route.path.replace(/^\//, '')
+    // 后端返回的子菜单 path 通常是绝对路径（如父 "/system" + 子 "/system/user"），
+    // react-router v6 嵌套路由要求子 path 相对父；若子以父开头则剥掉前缀。
+    const rawPath = route.path || ''
+    const absolutePath = rawPath.startsWith('/')
+      ? rawPath
+      : `${parentPath}/${rawPath}`.replace(/\/+/g, '/')
+    let relativePath = rawPath
+    if (parentPath && rawPath.startsWith(parentPath + '/')) {
+      relativePath = rawPath.slice(parentPath.length + 1)
+    } else if (rawPath.startsWith('/')) {
+      relativePath = rawPath.slice(1)
+    }
+
+    // 已被静态路由独占的 path（带参版本 / 自定义实现）— 后端的等价菜单跳过
+    if (STATIC_OWNED_PATHS.has(absolutePath)) {
+      continue
+    }
 
     if (isLayoutNode) {
       // 父级节点：只渲染 children，自身用 Outlet
@@ -94,7 +106,7 @@ function buildDynamicRoutes(routes: RouteItem[]): any[] {
         result.push({
           path: relativePath,
           element: <Outlet />,
-          children: buildDynamicRoutes(route.children),
+          children: buildDynamicRoutes(route.children, absolutePath),
         })
       }
     } else {
@@ -105,13 +117,19 @@ function buildDynamicRoutes(routes: RouteItem[]): any[] {
         element: wrap(Component),
       }
       if (route.children && route.children.length > 0) {
-        routeConfig.children = buildDynamicRoutes(route.children)
+        routeConfig.children = buildDynamicRoutes(route.children, absolutePath)
       }
       result.push(routeConfig)
     }
   }
   return result
 }
+
+// 后端动态菜单中与静态路由 path 完全相同、需要让静态路由优先的项
+// 例如 /system/notice/view（详情页用 :id 参数，前端单独写在静态里）
+const STATIC_OWNED_PATHS = new Set<string>([
+  '/system/notice/view',
+])
 
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
@@ -172,16 +190,8 @@ export function AppRouter() {
             element: wrap(ChangelogPage),
           },
           {
-            path: 'system/config',
-            element: wrap(SystemConfigPage),
-          },
-          {
             path: 'system/dict/tree',
             element: wrap(DictTreePage),
-          },
-          {
-            path: 'system/notice/add',
-            element: wrap(AddNoticePage),
           },
           {
             path: 'system/notice/view/:id',
@@ -194,10 +204,6 @@ export function AppRouter() {
           {
             path: 'system/user/dept',
             element: wrap(UserDeptPage),
-          },
-          {
-            path: 'monitor/log',
-            element: wrap(MonitorLogPage),
           },
           {
             path: 'app',

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { SvgIcon } from '@/components/svg-icon'
 import { useAppStore } from '@/stores/app'
 import { useRouteStore } from '@/stores/route'
 import { Logo } from './logo'
@@ -26,56 +27,116 @@ const appNavItems: NavItem[] = [
 
 interface SidebarProps {
   className?: string
+  /** 强制以"展开"形态渲染（用于移动端抽屉），忽略 menuCollapse */
+  forceExpanded?: boolean
+  /** 点击菜单项后的回调（如关闭抽屉） */
+  onNavigate?: () => void
 }
 
-function MenuItem({ route, collapsed }: { route: RouteItem; collapsed: boolean }) {
+// 把后端路由的相对/绝对 path 拼接成绝对路径
+function joinPath(parent: string, child: string) {
+  if (child.startsWith('/')) return child
+  if (!parent) return '/' + child
+  return parent.replace(/\/$/, '') + '/' + child
+}
+
+function RouteIcon({ name, fallback }: { name?: string; fallback?: string }) {
+  if (name) return <SvgIcon name={name} size={16} />
+  return (
+    <span className="inline-flex h-4 w-4 items-center justify-center text-[10px] font-medium opacity-60">
+      {fallback?.[0] ?? '·'}
+    </span>
+  )
+}
+
+function MenuItem({
+  route,
+  basePath,
+  collapsed,
+  onNavigate,
+}: {
+  route: RouteItem
+  basePath: string
+  collapsed: boolean
+  onNavigate?: () => void
+}) {
   const location = useLocation()
   const navigate = useNavigate()
-  const hasChildren = route.children && route.children.length > 0
-  const isActive = location.pathname === route.path || location.pathname.startsWith(route.path + '/')
+  const fullPath = joinPath(basePath, route.path)
+  const title = route.meta?.title || route.title || route.name || route.path
+  const icon = route.meta?.icon
+  const hasChildren = !!(route.children && route.children.length > 0)
+  const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/')
 
-  // Flatten single-child routes
+  // 单子节点自动展平（保持与 Vue 项目同样的体验）
   if (hasChildren && route.children!.length === 1 && !route.meta?.alwaysShow) {
-    const child = route.children![0]
-    return <MenuItem route={{ ...child, path: `${route.path}/${child.path}` }} collapsed={collapsed} />
+    const onlyChild = route.children![0]
+    return (
+      <MenuItem
+        route={{
+          ...onlyChild,
+          meta: {
+            ...onlyChild.meta,
+            title: onlyChild.meta?.title || title,
+            icon: onlyChild.meta?.icon || icon,
+          },
+        }}
+        basePath={fullPath}
+        collapsed={collapsed}
+        onNavigate={onNavigate}
+      />
+    )
   }
 
   if (hasChildren) {
     return (
-      <Collapsible defaultOpen={isActive}>
-        <CollapsibleTrigger className={cn(
-          'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-300',
-          'hover:bg-accent hover:text-accent-foreground',
-          isActive && 'bg-accent text-accent-foreground font-medium'
-        )}>
-          {route.meta?.icon && <span className="h-4 w-4 shrink-0">{route.meta.icon}</span>}
+      <Collapsible defaultOpen={isActive} className="group/collapsible">
+        <CollapsibleTrigger
+          className={cn(
+            'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-200',
+            'hover:bg-accent hover:text-accent-foreground',
+            isActive && 'text-foreground font-medium'
+          )}
+        >
+          <RouteIcon name={icon} fallback={title} />
           {!collapsed && (
             <>
-              <span className="flex-1 text-left truncate">{route.meta?.title}</span>
-              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
+              <span className="flex-1 text-left truncate">{title}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </>
           )}
         </CollapsibleTrigger>
-        <CollapsibleContent className="ml-4 space-y-0.5">
+        <CollapsibleContent className="ml-3 mt-0.5 space-y-0.5 border-l border-border pl-2">
           {route.children!.map((child) => (
-            <MenuItem key={child.path} route={{ ...child, path: `${route.path}/${child.path}` }} collapsed={collapsed} />
+            <MenuItem
+              key={child.id ?? child.path}
+              route={child}
+              basePath={fullPath}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+            />
           ))}
         </CollapsibleContent>
       </Collapsible>
     )
   }
 
+  const handleClick = () => {
+    navigate(fullPath)
+    onNavigate?.()
+  }
+
   const item = (
     <button
-      onClick={() => navigate(route.path)}
+      onClick={handleClick}
       className={cn(
-        'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-300',
+        'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-200',
         'hover:bg-accent hover:text-accent-foreground',
-        location.pathname === route.path && 'bg-primary text-primary-foreground'
+        location.pathname === fullPath && 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
       )}
     >
-      {route.meta?.icon && <span className="h-4 w-4 shrink-0">{route.meta.icon}</span>}
-      {!collapsed && <span className="truncate">{route.meta?.title}</span>}
+      <RouteIcon name={icon} fallback={title} />
+      {!collapsed && <span className="truncate text-left">{title}</span>}
     </button>
   )
 
@@ -83,7 +144,7 @@ function MenuItem({ route, collapsed }: { route: RouteItem; collapsed: boolean }
     return (
       <Tooltip>
         <TooltipTrigger asChild>{item}</TooltipTrigger>
-        <TooltipContent side="right">{route.meta?.title}</TooltipContent>
+        <TooltipContent side="right">{title}</TooltipContent>
       </Tooltip>
     )
   }
@@ -91,8 +152,9 @@ function MenuItem({ route, collapsed }: { route: RouteItem; collapsed: boolean }
   return item
 }
 
-export function AppSidebar({ className }: SidebarProps) {
-  const menuCollapse = useAppStore((s) => s.menuCollapse)
+export function AppSidebar({ className, forceExpanded, onNavigate }: SidebarProps) {
+  const menuCollapseStore = useAppStore((s) => s.menuCollapse)
+  const collapsed = forceExpanded ? false : menuCollapseStore
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
 
   const visibleRoutes = useMemo(
@@ -104,17 +166,28 @@ export function AppSidebar({ className }: SidebarProps) {
   const navigate = useNavigate()
   const isAppPage = location.pathname.startsWith('/app')
 
+  const handleAppNav = (path: string) => {
+    navigate(path)
+    onNavigate?.()
+  }
+
   return (
     <aside className={cn('flex h-full flex-col border-r bg-background', className)}>
-      <Logo collapsed={menuCollapse} />
+      <Logo collapsed={collapsed} />
       <ScrollArea className="flex-1 px-2">
         <nav className="space-y-0.5 py-2">
           {visibleRoutes.map((route) => (
-            <MenuItem key={route.path} route={route} collapsed={menuCollapse} />
+            <MenuItem
+              key={route.id ?? route.path}
+              route={route}
+              basePath=""
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+            />
           ))}
 
           {/* 应用中心 section */}
-          {!menuCollapse && (
+          {!collapsed && (
             <div className="mt-4">
               <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
                 应用中心
@@ -123,12 +196,12 @@ export function AppSidebar({ className }: SidebarProps) {
                 {appNavItems.map((item) => (
                   <button
                     key={item.path}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleAppNav(item.path)}
                     className={cn(
-                      'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-300',
+                      'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-200',
                       'hover:bg-accent hover:text-accent-foreground',
                       isAppPage && location.pathname.startsWith(item.path)
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
                         : ''
                     )}
                   >
@@ -141,18 +214,18 @@ export function AppSidebar({ className }: SidebarProps) {
           )}
 
           {/* Collapsed app nav */}
-          {menuCollapse && (
+          {collapsed && (
             <div className="mt-4 space-y-0.5">
               {appNavItems.map((item) => (
                 <Tooltip key={item.path}>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => navigate(item.path)}
+                      onClick={() => handleAppNav(item.path)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-300',
+                        'flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-colors duration-200',
                         'hover:bg-accent hover:text-accent-foreground',
                         isAppPage && location.pathname.startsWith(item.path)
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
                           : ''
                       )}
                     >
