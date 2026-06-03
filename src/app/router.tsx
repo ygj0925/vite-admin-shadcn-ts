@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
+import { useUserStore } from '@/stores/user'
 import { AuthGuard } from './auth-guard'
 import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
@@ -149,20 +150,14 @@ const STATIC_OWNED_PATHS = new Set<string>([
 
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
+  const hasHydrated = useRouteStore((s) => s._hasHydrated)
+  const token = useUserStore((s) => s.token)
+
+  // 有 token 但路由未加载时，显示 loading（不渲染 RouterProvider）
+  const isReady = !token || (hasHydrated && dynamicRoutes.length > 0)
 
   const router = useMemo(() => {
     const dynamic = buildDynamicRoutes(dynamicRoutes)
-    if (import.meta.env.DEV) {
-      console.log('[AppRouter] dynamic:', dynamic.length, 'routes')
-      // 打印完整的路由树
-      const printTree = (routes: any[], indent = '') => {
-        for (const r of routes) {
-          console.log(`${indent}${r.path} ${r.children ? `(${r.children.length} children)` : ''}`)
-          if (r.children) printTree(r.children, indent + '  ')
-        }
-      }
-      printTree(dynamic)
-    }
 
     return createBrowserRouter([
       {
@@ -265,6 +260,14 @@ export function AppRouter() {
     ])
   }, [dynamicRoutes])
 
-  // key 变化时强制重新挂载 RouterProvider，确保 React Router 重新匹配当前 URL
+  // 路由未加载完成时显示 loading，不渲染 RouterProvider
+  if (!isReady) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
   return <RouterProvider key={dynamicRoutes.length} router={router} />
 }
