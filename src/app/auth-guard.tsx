@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useUserStore } from '@/stores/user'
@@ -6,6 +6,14 @@ import { useRouteStore } from '@/stores/route'
 import { useTabsStore } from '@/stores/tabs'
 import { removeToken } from '@/lib/auth'
 
+/**
+ * 路由守卫 —— 对标 Vue 项目的 router/guard.ts
+ *
+ * 关键逻辑（和旧项目一致）：
+ * 1. 用内存中的 hasRouteFlag 标记，刷新页面后重置为 false
+ * 2. 每次进入受保护页面，如果 hasRouteFlag=false，都从 API 重新获取路由
+ * 3. 获取成功后设置 hasRouteFlag=true，后续导航不再重复请求
+ */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -15,10 +23,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const fetchRoutes = useUserStore((s) => s.fetchRoutes)
   const resetUser = useUserStore((s) => s.reset)
   const setTabsFromRoutes = useTabsStore((s) => s.setTabsFromRoutes)
-  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
-  const hasHydrated = useRouteStore((s) => s._hasHydrated)
+  const setDynamicRoutes = useRouteStore((s) => s.setDynamicRoutes)
   const firstRoutePath = useRouteStore((s) => s.firstRoutePath)
   const [loading, setLoading] = useState(false)
+
+  // 内存标记，刷新页面后重置 —— 和旧项目的 hasRouteFlag 一致
+  const hasRouteFlag = useRef(false)
 
   // OAuth 回调检测：根路径带 source + code 参数 → 跳转 /social/callback
   useEffect(() => {
@@ -39,28 +49,30 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [token, location.pathname, searchParams])
 
+  // 核心逻辑：每次刷新页面（hasRouteFlag=false）都重新请求路由
   useEffect(() => {
     if (!token) return
-    // Wait for Zustand hydration before deciding to fetch
-    if (!hasHydrated) return
-    // Fetch routes if not yet loaded into routeStore (covers both first login and page refresh)
-    if (dynamicRoutes.length === 0) {
-      setLoading(true)
-      const tasks: Promise<any>[] = [fetchRoutes()]
-      if (!userInfo) tasks.push(fetchUserInfo())
-      Promise.all(tasks)
-        .then(([routesRes]) => {
-          setTabsFromRoutes(routesRes)
-        })
-        .catch(() => {
-          // Route fetch failed — clear auth state and redirect to login
-          removeToken()
-          resetUser()
-          window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}`
-        })
-        .finally(() => setLoading(false))
-    }
-  }, [token, userInfo, dynamicRoutes.length, hasHydrated, fetchUserInfo, fetchRoutes, setTabsFromRoutes, resetUser, location.pathname])
+    // 路由已加载，跳过
+    if (hasRouteFlag.current) return
+
+    setLoading(true)
+    const tasks: Promise<any>[] = [fetchRoutes()]
+    if (!userInfo) tasks.push(fetchUserInfo())
+
+    Promise.all(tasks)
+      .then(([routesRes]) => {
+        hasRouteFlag.current = true
+        setTabsFromRoutes(routesRes)
+      })
+      .catch(() => {
+        // 请求失败 —— 清除登录状态，跳转登录页
+        hasRouteFlag.current = false
+        removeToken()
+        resetUser()
+        window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}`
+      })
+      .finally(() => setLoading(false))
+  }, [token, userInfo, fetchUserInfo, fetchRoutes, setTabsFromRoutes, resetUser, setDynamicRoutes, location.pathname])
 
   // 密码过期检测
   useEffect(() => {
@@ -70,12 +82,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [userInfo?.pwdExpired, location.pathname])
 
+  // 未登录 → 跳转登录页
   if (!token) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
   }
 
-  // Show spinner while waiting for hydration or route fetch
-  if (!hasHydrated || loading) {
+  // 加载中 → 显示 spinner
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />

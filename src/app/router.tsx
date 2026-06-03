@@ -13,6 +13,7 @@ const LoginPage = lazy(() => import('@/views/login/index'))
 const PwdExpiredPage = lazy(() => import('@/views/login/pwd-expired'))
 const SocialCallback = lazy(() => import('@/views/login/social-callback'))
 const CorpSelectPage = lazy(() => import('@/views/login/corp-select/index'))
+const NotImplementedPage = lazy(() => import('@/views/errors/not-implemented'))
 const ForbiddenPage = lazy(() => import('@/views/errors/403'))
 const NotFoundPage = lazy(() => import('@/views/errors/404'))
 const ServerErrorPage = lazy(() => import('@/views/errors/500'))
@@ -62,7 +63,9 @@ function resolveComponent(component: string) {
     console.warn(`[router] 未匹配到视图组件: "${component}" (normalized: "${normalized}")`)
     console.warn(`[router] 尝试的路径:`, candidates)
   }
-  return null
+  // 返回占位页面而不是 null，避免 404
+  const Placeholder = () => <NotImplementedPage componentPath={component} />
+  return Placeholder
 }
 
 function Loading() {
