@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
+import { useUserStore } from '@/stores/user'
 import { AuthGuard } from './auth-guard'
 import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
@@ -64,8 +65,7 @@ function resolveComponent(component: string) {
     console.warn(`[router] 尝试的路径:`, candidates)
   }
   // 返回占位页面而不是 null，避免 404
-  const Placeholder = () => <NotImplementedPage componentPath={component} />
-  return Placeholder
+  return NotImplementedPage
 }
 
 function Loading() {
@@ -150,18 +150,15 @@ const STATIC_OWNED_PATHS = new Set<string>([
 
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
+  const hasHydrated = useRouteStore((s) => s._hasHydrated)
+  const token = useUserStore((s) => s.token)
 
-  // 开发环境：打印路由状态
-  if (import.meta.env.DEV) {
-    console.log('[AppRouter] render, dynamicRoutes:', dynamicRoutes.length, 'first:', dynamicRoutes[0]?.path)
-  }
+  // 等待 Zustand 水合完成，避免用空数据创建 router
+  // 有 token 但路由还没加载时，显示 loading（AuthGuard 会处理加载）
+  const isReady = !token || hasHydrated
 
   const router = useMemo(() => {
     const dynamic = buildDynamicRoutes(dynamicRoutes)
-    if (import.meta.env.DEV) {
-      console.log('[AppRouter] dynamic routes built:', dynamic.length)
-      console.log('[AppRouter] dynamic paths:', dynamic.map((r: any) => r.path))
-    }
 
     return createBrowserRouter([
       {
@@ -259,6 +256,15 @@ export function AppRouter() {
       },
     ])
   }, [dynamicRoutes])
+
+  // 路由未加载完成时显示 loading，避免用空路由创建 router
+  if (!isReady) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
 
   return <RouterProvider router={router} />
 }
