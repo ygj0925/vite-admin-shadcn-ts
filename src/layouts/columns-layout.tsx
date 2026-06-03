@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { AppSidebar } from './components/sidebar'
 import { AppHeader } from './components/header'
 import { TabsBar } from './components/tabs-bar'
+import { SvgIcon } from '@/components/svg-icon'
 import type { RouteItem } from '@/types/api'
 
 function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
@@ -20,7 +21,7 @@ function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
           title={route.meta?.title}
         >
           <span className="flex h-5 w-5 items-center justify-center text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80 transition-colors duration-200">
-            {route.meta?.icon || route.meta?.title?.[0]}
+            {route.meta?.icon ? <SvgIcon name={route.meta.icon} size={18} /> : route.meta?.title?.[0]}
           </span>
           <span className="truncate text-[10px] text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80 w-full text-center transition-colors duration-200">
             {route.meta?.title}

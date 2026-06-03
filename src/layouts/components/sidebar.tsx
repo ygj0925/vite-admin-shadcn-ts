@@ -9,6 +9,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useAppStore } from '@/stores/app'
 import { useRouteStore } from '@/stores/route'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { SvgIcon } from '@/components/svg-icon'
 import { Logo } from './logo'
 import type { RouteItem } from '@/types/api'
 
@@ -64,7 +65,7 @@ function MenuItem({ route, collapsed }: { route: RouteItem; collapsed: boolean }
               'flex h-5 w-5 shrink-0 items-center justify-center transition-colors duration-200',
               isActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70'
             )}>
-              {route.meta.icon}
+              <SvgIcon name={route.meta.icon} size={18} />
             </span>
           )}
           {!collapsed && (
@@ -104,7 +105,7 @@ function MenuItem({ route, collapsed }: { route: RouteItem; collapsed: boolean }
             ? 'text-sidebar-primary-foreground'
             : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70'
         )}>
-          {route.meta.icon}
+          <SvgIcon name={route.meta.icon} size={18} />
         </span>
       )}
       {!collapsed && <span className="truncate">{route.meta?.title}</span>}
