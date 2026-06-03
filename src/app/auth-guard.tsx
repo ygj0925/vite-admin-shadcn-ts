@@ -62,6 +62,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     Promise.all(tasks)
       .then(([routesRes]) => {
         hasRouteFlag.current = true
+        if (import.meta.env.DEV) {
+          console.log('[AuthGuard] 路由获取成功，数量:', Array.isArray(routesRes) ? routesRes.length : 'NOT_ARRAY')
+          if (Array.isArray(routesRes) && routesRes.length > 0) {
+            console.log('[AuthGuard] 第一条路由:', JSON.parse(JSON.stringify(routesRes[0])))
+          }
+        }
         setTabsFromRoutes(routesRes)
       })
       .catch(() => {
