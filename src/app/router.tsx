@@ -1,7 +1,8 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState, useEffect } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
 import { useUserStore } from '@/stores/user'
+import { getUserRoute } from '@/apis/auth'
 import { AuthGuard } from './auth-guard'
 import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
@@ -43,13 +44,11 @@ const AppSettingsPage = lazy(() => import('@/views/app/profile/settings'))
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
 
-  // 后端 component 字段历史上是 Vue 习惯：'system/user/index' 或带 .vue 后缀。
-  // React 项目里既有 'a/b/index.tsx' 也有扁平 'a/b.tsx'，按下列顺序匹配。
   const normalized = component
     .replace(/\.vue$/, '')
     .replace(/\/index$/, '')
-    .replace(/^views\//, '')  // 兼容带 views/ 前缀的路径
-    .replace(/^@\/views\//, '')  // 兼容 @/views/ 前缀
+    .replace(/^views\//, '')
+    .replace(/^@\/views\//, '')
   const candidates = [
     `../views/${normalized}/index.tsx`,
     `../views/${normalized}.tsx`,
@@ -59,12 +58,9 @@ function resolveComponent(component: string) {
       return lazy(viewModules[key] as () => Promise<{ default: React.ComponentType }>)
     }
   }
-  // 开发环境打印所有候选路径帮助调试
   if (import.meta.env.DEV) {
     console.warn(`[router] 未匹配到视图组件: "${component}" (normalized: "${normalized}")`)
-    console.warn(`[router] 尝试的路径:`, candidates)
   }
-  // 返回占位页面而不是 null，避免 404
   return NotImplementedPage
 }
 
@@ -87,17 +83,11 @@ function wrap(Component: React.ComponentType) {
 function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   const result: any[] = []
   for (const route of routes) {
-    // 适配后端字段：isHidden 或 meta.hidden
     const isHidden = (route as any).isHidden ?? route.meta?.hidden ?? false
-    if (isHidden) {
-      continue
-    }
+    if (isHidden) continue
 
-    // component = "Layout" 表示这是一个父级容器，用 Outlet 渲染子路由
     const isLayoutNode = (route as any).component === 'Layout' || (route as any).component === 'ParentView' || !route.component
 
-    // 后端返回的子菜单 path 通常是绝对路径（如父 "/system" + 子 "/system/user"），
-    // react-router v6 嵌套路由要求子 path 相对父；若子以父开头则剥掉前缀。
     const rawPath = route.path || ''
     const absolutePath = rawPath.startsWith('/')
       ? rawPath
@@ -109,13 +99,9 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
       relativePath = rawPath.slice(1)
     }
 
-    // 已被静态路由独占的 path（带参版本 / 自定义实现）— 后端的等价菜单跳过
-    if (STATIC_OWNED_PATHS.has(absolutePath)) {
-      continue
-    }
+    if (STATIC_OWNED_PATHS.has(absolutePath)) continue
 
     if (isLayoutNode) {
-      // 父级节点：只渲染 children，自身用 Outlet
       if (route.children && route.children.length > 0) {
         result.push({
           path: relativePath,
@@ -125,10 +111,7 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
       }
     } else {
       const Component = resolveComponent(route.component)
-      if (!Component) {
-        if (import.meta.env.DEV) console.warn(`[router] 跳过路由（组件未匹配）: ${route.path}, component: "${route.component}"`)
-        continue
-      }
+      if (!Component) continue
       const routeConfig: any = {
         path: relativePath,
         element: wrap(Component),
@@ -142,126 +125,103 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   return result
 }
 
-// 后端动态菜单中与静态路由 path 完全相同、需要让静态路由优先的项
-// 例如 /system/notice/view（详情页用 :id 参数，前端单独写在静态里）
-const STATIC_OWNED_PATHS = new Set<string>([
-  '/system/notice/view',
-])
+const STATIC_OWNED_PATHS = new Set<string>(['/system/notice/view'])
 
+/**
+ * 构建完整的路由配置
+ */
+function buildRouterConfig(dynamicRoutes: RouteItem[]) {
+  const dynamic = buildDynamicRoutes(dynamicRoutes)
+  return [
+    { path: '/login', element: wrap(LoginPage) },
+    { path: '/it-dashboard', element: wrap(ITDashboardPage) },
+    { path: '/it-dashboard-tabs', element: wrap(ITDashboardTabsPage) },
+    { path: '/pwdExpired', element: wrap(PwdExpiredPage) },
+    { path: '/social/callback', element: wrap(SocialCallback) },
+    { path: '/corp-select', element: wrap(CorpSelectPage) },
+    { path: '/403', element: wrap(ForbiddenPage) },
+    { path: '/500', element: wrap(ServerErrorPage) },
+    {
+      path: '/',
+      element: <AuthGuard><Layout /></AuthGuard>,
+      children: [
+        { index: true, element: <Navigate to="/dashboard/workplace" replace /> },
+        { path: 'dashboard/workplace', element: wrap(WorkplacePage) },
+        { path: 'dashboard/analysis', element: wrap(AnalysisPage) },
+        { path: 'about', element: wrap(AboutPage) },
+        { path: 'about/document/api', element: wrap(ApiDocPage) },
+        { path: 'about/document/changelog', element: wrap(ChangelogPage) },
+        { path: 'system/dict/tree', element: wrap(DictTreePage) },
+        { path: 'system/notice/view/:id', element: wrap(ViewNoticePage) },
+        { path: 'system/role/tree', element: wrap(RoleTreePage) },
+        { path: 'system/user/dept', element: wrap(UserDeptPage) },
+        {
+          path: 'app',
+          element: <Outlet />,
+          children: [
+            { index: true, element: <Navigate to="/app/home" replace /> },
+            { path: 'home', element: wrap(AppHomePage) },
+            { path: 'ai-chat', element: wrap(AppAiChatPage) },
+            { path: 'schedule', element: wrap(AppSchedulePage) },
+            { path: 'info', element: wrap(AppInfoPage) },
+            { path: 'info/:id', element: wrap(AppInfoDetailPage) },
+            { path: 'profile', element: wrap(AppProfilePage) },
+            { path: 'settings', element: wrap(AppSettingsPage) },
+          ],
+        },
+        { path: 'redirect/:path', element: wrap(RedirectPage) },
+        ...dynamic,
+        { path: '*', element: wrap(NotFoundPage) },
+      ],
+    },
+    { path: '*', element: wrap(NotFoundPage) },
+  ]
+}
+
+/**
+ * AppRouter —— 对标 Vue 项目的路由初始化流程
+ *
+ * Vue 流程：router.beforeEach → userStore.getInfo() → routeStore.generateRoutes()
+ *          → router.addRoute() → next({...to, replace: true})
+ *
+ * React 等价：在组件渲染前先获取路由，用获取到的完整路由表创建 router，
+ *            确保 RouterProvider 首次渲染时就有完整的路由表。
+ */
 export function AppRouter() {
-  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
-  const hasHydrated = useRouteStore((s) => s._hasHydrated)
   const token = useUserStore((s) => s.token)
+  const setDynamicRoutes = useRouteStore((s) => s.setDynamicRoutes)
+  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
+  const [routesLoaded, setRoutesLoaded] = useState(false)
 
-  // 有 token 但路由未加载时，显示 loading（不渲染 RouterProvider）
-  const isReady = !token || (hasHydrated && dynamicRoutes.length > 0)
+  // 核心逻辑：和 Vue 的 guard.ts 一致，在渲染前先获取路由
+  useEffect(() => {
+    if (!token) {
+      setRoutesLoaded(true)
+      return
+    }
 
-  const router = useMemo(() => {
-    const dynamic = buildDynamicRoutes(dynamicRoutes)
+    // 已有路由数据（从 Zustand persist 恢复），直接标记完成
+    if (dynamicRoutes.length > 0) {
+      setRoutesLoaded(true)
+      return
+    }
 
-    return createBrowserRouter([
-      {
-        path: '/login',
-        element: wrap(LoginPage),
-      },
-      {
-        path: '/it-dashboard',
-        element: wrap(ITDashboardPage),
-      },
-      {
-        path: '/it-dashboard-tabs',
-        element: wrap(ITDashboardTabsPage),
-      },
-      {
-        path: '/pwdExpired',
-        element: wrap(PwdExpiredPage),
-      },
-      {
-        path: '/social/callback',
-        element: wrap(SocialCallback),
-      },
-      {
-        path: '/corp-select',
-        element: wrap(CorpSelectPage),
-      },
-      {
-        path: '/403',
-        element: wrap(ForbiddenPage),
-      },
-      {
-        path: '/500',
-        element: wrap(ServerErrorPage),
-      },
-      {
-        path: '/',
-        element: (
-          <AuthGuard>
-            <Layout />
-          </AuthGuard>
-        ),
-        children: [
-          { index: true, element: <Navigate to="/dashboard/workplace" replace /> },
-          { path: 'dashboard/workplace', element: wrap(WorkplacePage) },
-          { path: 'dashboard/analysis', element: wrap(AnalysisPage) },
-          {
-            path: 'about',
-            element: wrap(AboutPage),
-          },
-          {
-            path: 'about/document/api',
-            element: wrap(ApiDocPage),
-          },
-          {
-            path: 'about/document/changelog',
-            element: wrap(ChangelogPage),
-          },
-          {
-            path: 'system/dict/tree',
-            element: wrap(DictTreePage),
-          },
-          {
-            path: 'system/notice/view/:id',
-            element: wrap(ViewNoticePage),
-          },
-          {
-            path: 'system/role/tree',
-            element: wrap(RoleTreePage),
-          },
-          {
-            path: 'system/user/dept',
-            element: wrap(UserDeptPage),
-          },
-          {
-            path: 'app',
-            element: <Outlet />,
-            children: [
-              { index: true, element: <Navigate to="/app/home" replace /> },
-              { path: 'home', element: wrap(AppHomePage) },
-              { path: 'ai-chat', element: wrap(AppAiChatPage) },
-              { path: 'schedule', element: wrap(AppSchedulePage) },
-              { path: 'info', element: wrap(AppInfoPage) },
-              { path: 'info/:id', element: wrap(AppInfoDetailPage) },
-              { path: 'profile', element: wrap(AppProfilePage) },
-              { path: 'settings', element: wrap(AppSettingsPage) },
-            ],
-          },
-          {
-            path: 'redirect/:path',
-            element: wrap(RedirectPage),
-          },
-          ...dynamic,
-          { path: '*', element: wrap(NotFoundPage) },
-        ],
-      },
-      {
-        path: '*',
-        element: wrap(NotFoundPage),
-      },
-    ])
-  }, [dynamicRoutes])
+    // 没有路由数据，从 API 获取（对标 Vue 的 routeStore.generateRoutes()）
+    getUserRoute()
+      .then((res) => {
+        setDynamicRoutes(res.data)
+      })
+      .catch((err) => {
+        console.error('[AppRouter] 获取路由失败:', err)
+      })
+      .finally(() => {
+        setRoutesLoaded(true)
+      })
+  }, [token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 路由未加载完成时显示 loading，不渲染 RouterProvider
-  if (!isReady) {
+  // 这和 Vue 的 NProgress.start() + beforeEach 阻塞效果一致
+  if (!routesLoaded) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -269,5 +229,19 @@ export function AppRouter() {
     )
   }
 
+  return <AppRouterInner />
+}
+
+/**
+ * 内部路由组件 —— 在路由数据就绪后渲染
+ */
+function AppRouterInner() {
+  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
+
+  const router = useMemo(() => {
+    return createBrowserRouter(buildRouterConfig(dynamicRoutes))
+  }, [dynamicRoutes])
+
+  // key 强制重新挂载，确保 React Router 重新匹配当前 URL
   return <RouterProvider key={dynamicRoutes.length} router={router} />
 }
