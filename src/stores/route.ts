@@ -13,7 +13,12 @@ interface RouteState {
 
 // 后端返回的路由字段是扁平的（title/icon/isHidden/isCache/...），
 // 前端组件统一从 route.meta 读取，这里把扁平字段映射到 meta 上。
-function normalizeRoute(route: RouteItem): RouteItem {
+function normalizeRoute(route: RouteItem, parentPath?: string): RouteItem {
+  // 子菜单（有 permission 的按钮级菜单）需要标记父菜单路径，用于高亮父菜单 tab
+  const activeMenu = route.parentId && route.type === 2 && route.permission
+    ? parentPath
+    : route.meta?.activeMenu
+
   const meta = {
     title: route.meta?.title ?? route.title ?? '',
     icon: route.meta?.icon ?? route.icon,
@@ -22,11 +27,18 @@ function normalizeRoute(route: RouteItem): RouteItem {
     affix: route.meta?.affix ?? false,
     alwaysShow: route.meta?.alwaysShow ?? false,
     badge: route.meta?.badge,
+    activeMenu,
   }
+
+  // 按 sort 字段排序子路由
+  const sortedChildren = route.children
+    ? [...route.children].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(c => normalizeRoute(c, route.path))
+    : undefined
+
   return {
     ...route,
     meta,
-    children: route.children?.map(normalizeRoute),
+    children: sortedChildren,
   }
 }
 
@@ -79,7 +91,9 @@ export const useRouteStore = create<RouteState>()(
       _hasHydrated: false,
 
       setDynamicRoutes: (routes) => {
-        const normalized = routes.map(normalizeRoute)
+        // 顶级路由也按 sort 排序
+        const sorted = [...routes].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+        const normalized = sorted.map(r => normalizeRoute(r))
         set({
           dynamicRoutes: normalized,
           flatRoutes: flattenRoutes(normalized),

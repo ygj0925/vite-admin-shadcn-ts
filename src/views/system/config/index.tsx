@@ -1,9 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import SiteConfigPage from './site/index'
+import LoginConfigPage from './login/index'
+import SecurityConfigPage from './security/index'
+import MailConfigPage from './mail/index'
+import SmsConfigPage from './sms/index'
+import StorageConfigPage from './storage/index'
+import ClientConfigPage from './client/index'
+
+const TAB_MAP: Record<string, string> = {
+  site: '站点配置',
+  login: '登录配置',
+  security: '安全配置',
+  mail: '邮件配置',
+  sms: '短信配置',
+  storage: '存储配置',
+  client: '客户端配置',
+}
 
 export default function SystemConfigPage() {
-  const [activeTab, setActiveTab] = useState('site')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'site')
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && TAB_MAP[tab]) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    setSearchParams({ tab: value })
+  }
 
   return (
     <div className="space-y-6">
@@ -12,7 +42,7 @@ export default function SystemConfigPage() {
         <p className="text-sm text-muted-foreground mt-1">管理系统各项配置</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="site">站点配置</TabsTrigger>
           <TabsTrigger value="login">登录配置</TabsTrigger>
@@ -23,82 +53,13 @@ export default function SystemConfigPage() {
           <TabsTrigger value="client">客户端配置</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="site">
-          <Card>
-            <CardHeader>
-              <CardTitle>站点配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 站点配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="login">
-          <Card>
-            <CardHeader>
-              <CardTitle>登录配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 登录配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>安全配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 安全配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="mail">
-          <Card>
-            <CardHeader>
-              <CardTitle>邮件配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 邮件配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sms">
-          <Card>
-            <CardHeader>
-              <CardTitle>短信配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 短信配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="storage">
-          <Card>
-            <CardHeader>
-              <CardTitle>存储配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 存储配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="client">
-          <Card>
-            <CardHeader>
-              <CardTitle>客户端配置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 客户端配置内容 */}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <TabsContent value="site"><SiteConfigPage /></TabsContent>
+        <TabsContent value="login"><LoginConfigPage /></TabsContent>
+        <TabsContent value="security"><SecurityConfigPage /></TabsContent>
+        <TabsContent value="mail"><MailConfigPage /></TabsContent>
+        <TabsContent value="sms"><SmsConfigPage /></TabsContent>
+        <TabsContent value="storage"><StorageConfigPage /></TabsContent>
+        <TabsContent value="client"><ClientConfigPage /></TabsContent>
       </Tabs>
     </div>
   )

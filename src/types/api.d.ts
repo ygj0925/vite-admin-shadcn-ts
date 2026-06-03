@@ -24,14 +24,16 @@ export interface LabelValueState {
 }
 
 export interface RouteItem {
-  id?: number
-  parentId?: number
+  id?: number | string
+  parentId?: number | string
   path: string
   name?: string
   component: string
   redirect?: string
   title?: string
   icon?: string
+  type?: number
+  permission?: string
   isHidden?: boolean
   isCache?: boolean
   isExternal?: boolean
@@ -45,6 +47,7 @@ export interface RouteItem {
     affix?: boolean
     cache?: boolean
     badge?: string
+    activeMenu?: string
   }
   children?: RouteItem[]
 }

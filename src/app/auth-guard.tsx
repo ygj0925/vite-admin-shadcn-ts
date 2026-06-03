@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useUserStore } from '@/stores/user'
 import { useRouteStore } from '@/stores/route'
@@ -19,6 +19,7 @@ import { removeToken } from '@/lib/auth'
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const token = useUserStore((s) => s.token)
   const userInfo = useUserStore((s) => s.userInfo)
   const fetchUserInfo = useUserStore((s) => s.fetchUserInfo)
@@ -26,13 +27,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const firstRoutePath = useRouteStore((s) => s.firstRoutePath)
   const [loading, setLoading] = useState(false)
 
-  // OAuth 回调检测
+  // OAuth 回调检测（SPA 导航，不刷新页面）
   useEffect(() => {
     if (location.pathname === '/' && searchParams.has('source') && searchParams.has('code')) {
-      const qs = searchParams.toString()
-      window.location.replace(`/social/callback?${qs}`)
+      navigate(`/social/callback?${searchParams.toString()}`, { replace: true })
     }
-  }, [location.pathname, searchParams])
+  }, [location.pathname, searchParams, navigate])
 
   // corp 参数清理
   useEffect(() => {

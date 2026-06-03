@@ -30,11 +30,12 @@ http.interceptors.response.use(
     if (res.success) {
       return response
     }
-    // 401 → redirect to login
+    // 401 → redirect to login (preserve current path for redirect back)
     if (res.code === 401 && !response.config.url?.includes('/auth/user/info')) {
       removeToken()
       toast.error('登录已过期，请重新登录')
-      window.location.href = '/login'
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+      window.location.href = `/login?redirect=${redirect}`
       return Promise.reject(new Error(res.msg))
     }
     // Error toast
@@ -85,7 +86,21 @@ export function del<T>(url: string, data?: unknown): Promise<ApiRes<T>> {
 }
 
 export function download(url: string, params?: Record<string, unknown>): Promise<Blob> {
-  return http.get(url, { params, responseType: 'blob' }).then((res) => res.data)
+  return http.get(url, { params, responseType: 'blob' }).then((res) => {
+    const data = res.data
+    // 检查 blob 是否实际上是 JSON 错误响应
+    if (data instanceof Blob && data.type === 'application/json') {
+      return data.text().then((text) => {
+        const json = JSON.parse(text)
+        if (!json.success) {
+          toast.error(json.msg || '下载失败')
+          return Promise.reject(new Error(json.msg))
+        }
+        return data
+      })
+    }
+    return data
+  })
 }
 
 export default http
