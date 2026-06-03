@@ -43,7 +43,11 @@ function resolveComponent(component: string) {
 
   // 后端 component 字段历史上是 Vue 习惯：'system/user/index' 或带 .vue 后缀。
   // React 项目里既有 'a/b/index.tsx' 也有扁平 'a/b.tsx'，按下列顺序匹配。
-  const normalized = component.replace(/\.vue$/, '').replace(/\/index$/, '')
+  const normalized = component
+    .replace(/\.vue$/, '')
+    .replace(/\/index$/, '')
+    .replace(/^views\//, '')  // 兼容带 views/ 前缀的路径
+    .replace(/^@\/views\//, '')  // 兼容 @/views/ 前缀
   const candidates = [
     `../views/${normalized}/index.tsx`,
     `../views/${normalized}.tsx`,
@@ -53,7 +57,11 @@ function resolveComponent(component: string) {
       return lazy(viewModules[key] as () => Promise<{ default: React.ComponentType }>)
     }
   }
-  console.warn(`[router] 未匹配到视图组件: ${component}`)
+  // 开发环境打印所有候选路径帮助调试
+  if (import.meta.env.DEV) {
+    console.warn(`[router] 未匹配到视图组件: "${component}" (normalized: "${normalized}")`)
+    console.warn(`[router] 尝试的路径:`, candidates)
+  }
   return null
 }
 
@@ -75,10 +83,19 @@ function wrap(Component: React.ComponentType) {
 
 function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   const result: any[] = []
+  if (import.meta.env.DEV && parentPath === '') {
+    console.log(`[router] buildDynamicRoutes 收到 ${routes.length} 条路由`)
+    if (routes.length > 0) {
+      console.log('[router] 第一条路由示例:', JSON.parse(JSON.stringify(routes[0])))
+    }
+  }
   for (const route of routes) {
     // 适配后端字段：isHidden 或 meta.hidden
     const isHidden = (route as any).isHidden ?? route.meta?.hidden ?? false
-    if (isHidden) continue
+    if (isHidden) {
+      if (import.meta.env.DEV) console.log(`[router] 跳过隐藏路由: ${route.path}`)
+      continue
+    }
 
     // component = "Layout" 表示这是一个父级容器，用 Outlet 渲染子路由
     const isLayoutNode = (route as any).component === 'Layout' || (route as any).component === 'ParentView' || !route.component
@@ -112,7 +129,10 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
       }
     } else {
       const Component = resolveComponent(route.component)
-      if (!Component) continue
+      if (!Component) {
+        if (import.meta.env.DEV) console.warn(`[router] 跳过路由（组件未匹配）: ${route.path}, component: "${route.component}"`)
+        continue
+      }
       const routeConfig: any = {
         path: relativePath,
         element: wrap(Component),
