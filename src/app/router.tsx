@@ -1,7 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
-import { useUserStore } from '@/stores/user'
 import { AuthGuard } from './auth-guard'
 import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
@@ -150,12 +149,6 @@ const STATIC_OWNED_PATHS = new Set<string>([
 
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
-  const hasHydrated = useRouteStore((s) => s._hasHydrated)
-  const token = useUserStore((s) => s.token)
-
-  // 等待 Zustand 水合完成，避免用空数据创建 router
-  // 有 token 但路由还没加载时，显示 loading（AuthGuard 会处理加载）
-  const isReady = !token || hasHydrated
 
   const router = useMemo(() => {
     const dynamic = buildDynamicRoutes(dynamicRoutes)
@@ -257,14 +250,7 @@ export function AppRouter() {
     ])
   }, [dynamicRoutes])
 
-  // 路由未加载完成时显示 loading，避免用空路由创建 router
-  if (!isReady) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    )
-  }
-
-  return <RouterProvider router={router} />
+  // 用 dynamicRoutes.length 作为 key，路由数量变化时强制重新挂载 RouterProvider
+  // 这确保 React Router 会重新匹配当前 URL
+  return <RouterProvider key={dynamicRoutes.length} router={router} />
 }
