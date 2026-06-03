@@ -86,12 +86,6 @@ function wrap(Component: React.ComponentType) {
 
 function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   const result: any[] = []
-  if (import.meta.env.DEV && parentPath === '') {
-    console.log(`[router] buildDynamicRoutes 收到 ${routes.length} 条路由`)
-    if (routes.length > 0) {
-      console.log('[router] 第一条路由示例:', JSON.parse(JSON.stringify(routes[0])))
-    }
-  }
   for (const route of routes) {
     // 适配后端字段：isHidden 或 meta.hidden
     const isHidden = (route as any).isHidden ?? route.meta?.hidden ?? false
@@ -101,10 +95,6 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
 
     // component = "Layout" 表示这是一个父级容器，用 Outlet 渲染子路由
     const isLayoutNode = (route as any).component === 'Layout' || (route as any).component === 'ParentView' || !route.component
-
-    if (import.meta.env.DEV && parentPath === '') {
-      console.log(`[router] 处理路由: path="${route.path}" component="${route.component}" isHidden=${isHidden} isLayout=${isLayoutNode} children=${route.children?.length ?? 0}`)
-    }
 
     // 后端返回的子菜单 path 通常是绝对路径（如父 "/system" + 子 "/system/user"），
     // react-router v6 嵌套路由要求子 path 相对父；若子以父开头则剥掉前缀。
@@ -161,13 +151,16 @@ const STATIC_OWNED_PATHS = new Set<string>([
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
 
+  // 开发环境：打印路由状态
+  if (import.meta.env.DEV) {
+    console.log('[AppRouter] render, dynamicRoutes:', dynamicRoutes.length, 'first:', dynamicRoutes[0]?.path)
+  }
+
   const router = useMemo(() => {
-    if (import.meta.env.DEV) {
-      console.log(`[AppRouter] 构建路由，dynamicRoutes 数量: ${dynamicRoutes.length}`)
-    }
     const dynamic = buildDynamicRoutes(dynamicRoutes)
     if (import.meta.env.DEV) {
-      console.log(`[AppRouter] 构建完成，动态路由数量: ${dynamic.length}`)
+      console.log('[AppRouter] dynamic routes built:', dynamic.length)
+      console.log('[AppRouter] dynamic paths:', dynamic.map((r: any) => r.path))
     }
 
     return createBrowserRouter([
