@@ -152,6 +152,17 @@ export function AppRouter() {
 
   const router = useMemo(() => {
     const dynamic = buildDynamicRoutes(dynamicRoutes)
+    if (import.meta.env.DEV) {
+      console.log('[AppRouter] dynamic:', dynamic.length, 'routes')
+      // 打印完整的路由树
+      const printTree = (routes: any[], indent = '') => {
+        for (const r of routes) {
+          console.log(`${indent}${r.path} ${r.children ? `(${r.children.length} children)` : ''}`)
+          if (r.children) printTree(r.children, indent + '  ')
+        }
+      }
+      printTree(dynamic)
+    }
 
     return createBrowserRouter([
       {
@@ -246,6 +257,10 @@ export function AppRouter() {
           ...dynamic,
           { path: '*', element: wrap(NotFoundPage) },
         ],
+      },
+      {
+        path: '*',
+        element: wrap(NotFoundPage),
       },
     ])
   }, [dynamicRoutes])
