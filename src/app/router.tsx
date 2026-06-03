@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState, useEffect, useRef } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
 import { AuthGuard } from './auth-guard'
@@ -149,11 +149,19 @@ const STATIC_OWNED_PATHS = new Set<string>([
 
 export function AppRouter() {
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
+  const [router, setRouter] = useState(() => createBrowserRouter([
+    { path: '/', element: <AuthGuard><Layout /></AuthGuard>, children: [{ index: true, element: <Navigate to="/dashboard/workplace" replace /> }, { path: '*', element: wrap(NotFoundPage) }] },
+    { path: '*', element: wrap(NotFoundPage) },
+  ]))
 
-  const router = useMemo(() => {
+  useEffect(() => {
     const dynamic = buildDynamicRoutes(dynamicRoutes)
+    if (import.meta.env.DEV) {
+      console.log('[AppRouter] useEffect: building router with', dynamic.length, 'dynamic routes')
+      console.log('[AppRouter] dynamic paths:', dynamic.map((r: any) => r.path))
+    }
 
-    return createBrowserRouter([
+    setRouter(createBrowserRouter([
       {
         path: '/login',
         element: wrap(LoginPage),
@@ -247,10 +255,8 @@ export function AppRouter() {
           { path: '*', element: wrap(NotFoundPage) },
         ],
       },
-    ])
+    ]))
   }, [dynamicRoutes])
 
-  // 用 dynamicRoutes.length 作为 key，路由数量变化时强制重新挂载 RouterProvider
-  // 这确保 React Router 会重新匹配当前 URL
-  return <RouterProvider key={dynamicRoutes.length} router={router} />
+  return <RouterProvider router={router} />
 }
