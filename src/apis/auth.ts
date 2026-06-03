@@ -57,3 +57,8 @@ export function sendSmsCode(phone: string) {
 export function sendEmailCode(email: string) {
   return post<void>('/auth/email/code', { email })
 }
+
+/** 三方账号登录 */
+export function socialLogin(data: Record<string, unknown>) {
+  return post<LoginResp>('/auth/login', data)
+}

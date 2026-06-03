@@ -7,6 +7,7 @@ import { AppSidebar } from './components/sidebar'
 import { AppHeader } from './components/header'
 import { TabsBar } from './components/tabs-bar'
 import { SvgIcon } from '@/components/svg-icon'
+import { NoticePopup } from '@/views/user/message/components/notice-popup'
 import type { RouteItem } from '@/types/api'
 
 function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
@@ -42,6 +43,7 @@ export function ColumnsLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
+      <NoticePopup />
       <OneLevelMenu routes={dynamicRoutes} />
       <AppSidebar className={cn(
         'transition-all duration-300 ease-in-out',

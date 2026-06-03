@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   Building2,
+  Shield,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -245,6 +246,11 @@ export default function LoginPage() {
 
   // --- Social login ---
   async function handleSocialLogin(source: string) {
+    // 企业微信 → 跳转选公司页面
+    if (source === 'corp') {
+      navigate('/corp-select')
+      return
+    }
     setSocialLoading(source)
     try {
       const res = await getSocialAuthUrl(source)
@@ -256,6 +262,8 @@ export default function LoginPage() {
   }
 
   const socialButtons = [
+    { key: 'sso', label: 'SSO', icon: Shield },
+    { key: 'corp', label: '企业微信', icon: Building2 },
     { key: 'gitee', label: 'Gitee', icon: GitBranch },
     { key: 'github', label: 'GitHub', icon: GitFork },
     { key: 'wechat', label: '微信', icon: MessageCircle },

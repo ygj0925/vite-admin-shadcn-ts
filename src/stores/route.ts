@@ -5,6 +5,7 @@ import type { RouteItem } from '@/types/api'
 interface RouteState {
   dynamicRoutes: RouteItem[]
   flatRoutes: RouteItem[]
+  firstRoutePath: string
   _hasHydrated: boolean
   setDynamicRoutes: (routes: RouteItem[]) => void
   setFlatRoutes: (routes: RouteItem[]) => void
@@ -29,6 +30,30 @@ function normalizeRoute(route: RouteItem): RouteItem {
   }
 }
 
+/** 递归查找第一个可见的叶子路由路径 */
+function findFirstRoutePath(routes: RouteItem[], parentPath = ''): string {
+  for (const route of routes) {
+    const isHidden = route.meta?.hidden ?? route.isHidden ?? false
+    if (isHidden) continue
+    if (route.isExternal) continue
+
+    const fullPath = route.path.startsWith('/')
+      ? route.path
+      : parentPath
+        ? `${parentPath}/${route.path}`
+        : `/${route.path}`
+
+    // 如果有子路由，递归查找
+    if (route.children && route.children.length > 0) {
+      const childPath = findFirstRoutePath(route.children, fullPath)
+      if (childPath) return childPath
+    } else {
+      return fullPath
+    }
+  }
+  return ''
+}
+
 function flattenRoutes(routes: RouteItem[], parentPath = ''): RouteItem[] {
   const result: RouteItem[] = []
   for (const route of routes) {
@@ -50,6 +75,7 @@ export const useRouteStore = create<RouteState>()(
     (set) => ({
       dynamicRoutes: [],
       flatRoutes: [],
+      firstRoutePath: '',
       _hasHydrated: false,
 
       setDynamicRoutes: (routes) => {
@@ -57,6 +83,7 @@ export const useRouteStore = create<RouteState>()(
         set({
           dynamicRoutes: normalized,
           flatRoutes: flattenRoutes(normalized),
+          firstRoutePath: findFirstRoutePath(normalized),
         })
       },
 

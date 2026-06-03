@@ -29,3 +29,11 @@ export function readAllMessages() {
 export function deleteMessage(ids: string[]) {
   return del('/user/message', { ids })
 }
+
+export function getUnreadMessageCount() {
+  return get<{ total: number }>('/user/message/unread')
+}
+
+export function getUnreadNoticeIds(method: string) {
+  return get<number[]>(`/user/message/notice/unread/${method}`)
+}

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { login as loginApi, logout as logoutApi, getUserInfo, getUserRoute } from '@/apis/auth'
+import { login as loginApi, logout as logoutApi, getUserInfo, getUserRoute, socialLogin as socialLoginApi } from '@/apis/auth'
 import { setToken, removeToken } from '@/lib/auth'
 import { useRouteStore } from '@/stores/route'
 import type { UserInfo, RouteItem, LoginResp } from '@/types/api'
@@ -15,6 +15,7 @@ interface UserState {
   setUserInfo: (info: UserInfo) => void
   setRoutes: (routes: RouteItem[]) => void
   login: (params: Record<string, unknown>) => Promise<LoginResp>
+  socialLogin: (source: string, query: Record<string, string>) => Promise<LoginResp>
   logout: () => Promise<void>
   fetchUserInfo: () => Promise<UserInfo>
   fetchRoutes: () => Promise<RouteItem[]>
@@ -47,6 +48,14 @@ export const useUserStore = create<UserState>()(
 
       login: async (params) => {
         const res = await loginApi(params as any)
+        get().setToken(res.data.token)
+        localStorage.setItem('continew-tenant-id', String(res.data.tenantId))
+        return res.data
+      },
+
+      socialLogin: async (source, query) => {
+        const clientId = import.meta.env.VITE_CLIENT_ID
+        const res = await socialLoginApi({ source, ...query, clientId, authType: 'SOCIAL' })
         get().setToken(res.data.token)
         localStorage.setItem('continew-tenant-id', String(res.data.tenantId))
         return res.data

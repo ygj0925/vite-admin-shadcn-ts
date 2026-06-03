@@ -8,6 +8,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { AppSidebar } from './components/sidebar'
 import { TabsBar } from './components/tabs-bar'
 import { ThemeToggle } from './components/theme-toggle'
+import { NoticePopup } from '@/views/user/message/components/notice-popup'
 import { UserDropdown } from './components/user-dropdown'
 import { MobileNav } from './components/mobile-nav'
 import { Menu } from 'lucide-react'
@@ -35,6 +36,7 @@ export function MixLayout() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-muted/30">
+      <NoticePopup />
       <div className="flex h-14 items-center justify-between border-b border-border/60 bg-background/80 px-4 md:px-5 glass">
         <div className="flex items-center gap-3 md:gap-5">
           {/* 移动端：汉堡菜单 */}

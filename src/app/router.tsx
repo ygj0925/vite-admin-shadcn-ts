@@ -12,6 +12,7 @@ const viewModules = import.meta.glob('../views/**/*.tsx')
 const LoginPage = lazy(() => import('@/views/login/index'))
 const PwdExpiredPage = lazy(() => import('@/views/login/pwd-expired'))
 const SocialCallback = lazy(() => import('@/views/login/social-callback'))
+const CorpSelectPage = lazy(() => import('@/views/login/corp-select/index'))
 const ForbiddenPage = lazy(() => import('@/views/errors/403'))
 const NotFoundPage = lazy(() => import('@/views/errors/404'))
 const ServerErrorPage = lazy(() => import('@/views/errors/500'))
@@ -80,7 +81,7 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
     if (isHidden) continue
 
     // component = "Layout" 表示这是一个父级容器，用 Outlet 渲染子路由
-    const isLayoutNode = (route as any).component === 'Layout' || !route.component
+    const isLayoutNode = (route as any).component === 'Layout' || (route as any).component === 'ParentView' || !route.component
 
     // 后端返回的子菜单 path 通常是绝对路径（如父 "/system" + 子 "/system/user"），
     // react-router v6 嵌套路由要求子 path 相对父；若子以父开头则剥掉前缀。
@@ -157,6 +158,10 @@ export function AppRouter() {
       {
         path: '/social/callback',
         element: wrap(SocialCallback),
+      },
+      {
+        path: '/corp-select',
+        element: wrap(CorpSelectPage),
       },
       {
         path: '/403',

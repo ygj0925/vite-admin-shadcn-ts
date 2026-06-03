@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { AppSidebar } from './components/sidebar'
 import { AppHeader } from './components/header'
 import { TabsBar } from './components/tabs-bar'
+import { NoticePopup } from '@/views/user/message/components/notice-popup'
 
 export function DefaultLayout() {
   const menuCollapse = useAppStore((s) => s.menuCollapse)
@@ -15,6 +16,7 @@ export function DefaultLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
+      <NoticePopup />
       {/* 桌面端侧边栏（移动端由 sidebar 内部的 Sheet 控制） */}
       <AppSidebar className={cn(
         'transition-all duration-300 ease-in-out',

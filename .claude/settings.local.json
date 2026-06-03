@@ -36,10 +36,11 @@
       "PowerShell(Remove-Item *)",
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 15)",
       "PowerShell(git *)",
-      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)"
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"SaaS dashboard admin business professional modern\" --design-system --stack shadcn -p \"Continew Admin\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"SaaS dashboard admin business professional modern\" --design-system --stack shadcn -p \"Continew Admin\")",
+      "Bash(npx eslint *)",
+      "Bash(npm run *)",
+      "Bash(git checkout *)"
     ]
-  },
-  "enabledMcpjsonServers": [
-    "shadcn"
-  ]
+  }
 }

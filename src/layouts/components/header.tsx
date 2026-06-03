@@ -2,15 +2,19 @@ import { useLocation } from 'react-router-dom'
 import { PanelLeft, Menu } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useMessageCount } from '@/hooks/use-message-count'
 import { AppBreadcrumb } from './breadcrumb'
 import { ThemeToggle } from './theme-toggle'
 import { UserDropdown } from './user-dropdown'
 import { MobileNav } from './mobile-nav'
+import { MessagePopover } from './message-popover'
+import { HeaderSearch } from './header-search'
 
 export function AppHeader() {
   const location = useLocation()
   const isMobile = useIsMobile()
   const isAppPage = location.pathname.startsWith('/app')
+  const { unreadCount, refresh } = useMessageCount()
 
   // 桌面端：折叠侧边栏
   const toggleMenuCollapse = useAppStore((s) => s.toggleMenuCollapse)
@@ -41,6 +45,8 @@ export function AppHeader() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          <HeaderSearch />
+          <MessagePopover unreadCount={unreadCount} onRead={refresh} />
           <ThemeToggle />
           <div className="mx-1.5 h-5 w-px bg-border/60" />
           <UserDropdown />

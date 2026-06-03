@@ -60,6 +60,8 @@ export interface UserInfo {
   roles: string[]
   roleNames: string[]
   permissions: string[]
+  pwdExpired?: boolean
+  pwdResetTime?: string
 }
 
 export interface LoginResp {
