@@ -42,5 +42,8 @@
       "Bash(npm run *)",
       "Bash(git checkout *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }
