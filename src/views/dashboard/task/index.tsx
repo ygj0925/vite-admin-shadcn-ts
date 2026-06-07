@@ -189,7 +189,8 @@ export default function TaskPage() {
       </div>
 
       <DataTable columns={columns} data={data} loading={loading}
-        pagination={{ page, size, total, onPageChange: setPage, onSizeChange: setSize }} />
+        total={total} page={page} size={size}
+        onPageChange={setPage} onSizeChange={setSize} />
 
       <CrudForm open={formOpen} onOpenChange={setFormOpen} title={editing ? '编辑任务' : '新增任务'}
         fields={formFields} initialValues={editing ?? {}} onSubmit={handleSubmit} />

@@ -163,7 +163,8 @@ export default function CockpitPage() {
 
       {/* 任务表格 */}
       <DataTable columns={columns} data={tasks} loading={loading}
-        pagination={{ page, size, total, onPageChange: setPage, onSizeChange: () => {} }} />
+        total={total} page={page} size={size}
+        onPageChange={setPage} />
     </div>
   )
 }
