@@ -58,21 +58,28 @@ export function MessagePopover({ unreadCount, onRead }: MessagePopoverProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+        <button className={cn(
+          'relative flex h-8 w-8 items-center justify-center rounded-lg',
+          'text-muted-foreground transition-all duration-200',
+          'hover:bg-accent hover:text-foreground active:scale-95'
+        )}>
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <Badge className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]">
+            <Badge className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] shadow-sm">
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
           <span className="text-sm font-semibold">消息通知</span>
           <button
             onClick={handleReadAll}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className={cn(
+              'flex items-center gap-1 text-xs text-muted-foreground',
+              'transition-colors hover:text-foreground'
+            )}
           >
             <CheckCheck className="h-3 w-3" />
             全部已读
@@ -86,12 +93,15 @@ export function MessagePopover({ unreadCount, onRead }: MessagePopoverProps) {
           ) : messages.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">暂无消息</div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-border/50">
               {messages.map((msg) => (
                 <button
                   key={msg.id}
                   onClick={() => handleClickMessage(msg)}
-                  className="flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-accent"
+                  className={cn(
+                    'flex w-full flex-col gap-1 px-4 py-3 text-left',
+                    'transition-colors hover:bg-accent'
+                  )}
                 >
                   <div className="flex items-center gap-2">
                     <span
@@ -108,7 +118,7 @@ export function MessagePopover({ unreadCount, onRead }: MessagePopoverProps) {
             </div>
           )}
         </ScrollArea>
-        <div className="border-t px-4 py-2 text-center">
+        <div className="border-t border-border/50 px-4 py-2 text-center">
           <button
             onClick={() => {
               setOpen(false)

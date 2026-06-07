@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
 import { useRouteStore } from '@/stores/route'
+import { cn } from '@/lib/utils'
 
 export function AppBreadcrumb() {
   const location = useLocation()
@@ -17,7 +18,11 @@ export function AppBreadcrumb() {
     <nav className="flex items-center gap-1 text-sm">
       <Link
         to="/"
-        className="flex items-center gap-1 text-muted-foreground transition-colors duration-200 hover:text-foreground"
+        className={cn(
+          'flex items-center gap-1 text-muted-foreground',
+          'transition-colors duration-200 hover:text-foreground',
+          'rounded-md p-1 hover:bg-accent'
+        )}
       >
         <Home className="h-3.5 w-3.5" />
       </Link>
@@ -29,7 +34,11 @@ export function AppBreadcrumb() {
           ) : (
             <Link
               to={crumb.path}
-              className="text-muted-foreground transition-colors duration-200 hover:text-foreground"
+              className={cn(
+                'text-muted-foreground',
+                'transition-colors duration-200 hover:text-foreground',
+                'rounded-md px-1 py-0.5 hover:bg-accent'
+              )}
             >
               {crumb.title}
             </Link>

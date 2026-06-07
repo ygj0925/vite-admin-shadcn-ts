@@ -111,12 +111,23 @@ export function HeaderSearch() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className={cn(
+          'flex h-8 items-center gap-2 rounded-lg',
+          'border border-border/50 bg-background/50',
+          'px-2.5 sm:px-3 text-sm text-muted-foreground',
+          'transition-all duration-200',
+          'hover:bg-accent hover:text-foreground',
+          'active:scale-95'
+        )}
       >
         <Search className="h-3.5 w-3.5" />
         {!isMobile && <span className="hidden lg:inline">搜索</span>}
         {!isMobile && (
-          <kbd className="pointer-events-none hidden h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium lg:inline-flex">
+          <kbd className={cn(
+            'pointer-events-none hidden h-5 select-none items-center',
+            'gap-0.5 rounded border border-border bg-muted px-1.5',
+            'font-mono text-[10px] font-medium lg:inline-flex'
+          )}>
             Ctrl K
           </kbd>
         )}
@@ -124,7 +135,7 @@ export function HeaderSearch() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
-          <div className="flex items-center border-b px-4">
+          <div className="flex items-center border-b border-border/50 px-4">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}

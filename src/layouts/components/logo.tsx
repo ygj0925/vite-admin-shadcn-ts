@@ -1,25 +1,23 @@
-import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
+import { Command } from 'lucide-react'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 
-interface LogoProps {
-  collapsed?: boolean
-  className?: string
-}
-
-export function Logo({ collapsed, className }: LogoProps) {
+export function Logo() {
   return (
-    <div className={cn(
-      'flex h-14 items-center gap-2.5 border-b border-sidebar-border/60',
-      collapsed ? 'justify-center px-2' : 'px-5',
-      className
-    )}>
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
-        C
-      </div>
-      {!collapsed && (
-        <span className="whitespace-nowrap text-[15px] font-semibold tracking-tight text-foreground">
-          ContiNew
-        </span>
-      )}
-    </div>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton size="lg" asChild className="hover:bg-sidebar-accent/50">
+          <Link to="/">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md">
+              <Command className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-bold text-foreground">ContiNew</span>
+              <span className="truncate text-xs text-muted-foreground">管理后台</span>
+            </div>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   )
 }

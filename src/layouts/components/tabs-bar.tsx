@@ -31,34 +31,38 @@ export function TabsBar() {
   if (openTabs.length === 0) return null
 
   return (
-    <div className="flex h-10 items-center border-b border-border/60 bg-muted/30">
+    <div className="flex h-10 items-center bg-muted/20">
       <ScrollArea className="flex-1 whitespace-nowrap">
-        <div className="flex items-center gap-1 px-3">
-          {openTabs.map((tab) => (
-            <button
-              key={tab.path}
-              onClick={() => handleTabClick(tab.path)}
-              className={cn(
-                'group flex h-7 items-center gap-1.5 rounded-md px-3 text-xs transition-all duration-200',
-                activeTab === tab.path
-                  ? 'bg-background text-foreground font-medium shadow-sm'
-                  : 'text-muted-foreground hover:bg-background/60 hover:text-foreground'
-              )}
-            >
-              <span className="max-w-24 truncate">{tab.title}</span>
-              {!tab.affix && (
-                <X
-                  className="h-3 w-3 shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-destructive"
-                  onClick={(e) => handleClose(e, tab.path)}
-                />
-              )}
-            </button>
-          ))}
+        <div className="flex items-center gap-1 px-2 sm:px-3">
+          {openTabs.map((tab) => {
+            const active = activeTab === tab.path
+            return (
+              <button
+                key={tab.path}
+                onClick={() => handleTabClick(tab.path)}
+                className={cn(
+                  'group flex h-7 items-center gap-1.5 rounded-md px-2.5 sm:px-3 text-xs',
+                  'transition-all duration-200',
+                  active
+                    ? 'bg-background text-foreground font-medium shadow-sm border border-border/50'
+                    : 'text-muted-foreground hover:bg-background/60 hover:text-foreground'
+                )}
+              >
+                <span className="max-w-20 sm:max-w-24 truncate">{tab.title}</span>
+                {!tab.affix && (
+                  <X
+                    className="h-3 w-3 shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-destructive"
+                    onClick={(e) => handleClose(e, tab.path)}
+                  />
+                )}
+              </button>
+            )
+          })}
         </div>
         <ScrollBar orientation="horizontal" className="h-0" />
       </ScrollArea>
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground mx-2">
+        <DropdownMenuTrigger className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground mx-1.5 sm:mx-2">
           <MoreHorizontal className="h-3.5 w-3.5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
