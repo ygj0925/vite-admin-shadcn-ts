@@ -45,7 +45,7 @@ export function DefaultLayout() {
         {/* Main Content - 响应式内边距 */}
         <main className={cn(
           'flex-1 overflow-auto',
-          'bg-gradient-to-b from-muted/30 to-muted/50',
+          'bg-muted/40',
           // 响应式内边距
           'p-2 sm:p-3 md:p-4 lg:p-5',
           // 移动端底部导航空间

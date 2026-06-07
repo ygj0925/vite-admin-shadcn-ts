@@ -95,7 +95,7 @@ export function TopLayout() {
       {/* Main Content */}
       <main className={cn(
         'flex-1 overflow-auto',
-        'bg-gradient-to-b from-muted/30 to-muted/50',
+        'bg-muted/40',
         'p-2 sm:p-3 md:p-4 lg:p-5',
         isMobile && isAppPage ? 'pb-20' : ''
       )}>
