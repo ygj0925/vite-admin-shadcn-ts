@@ -184,18 +184,12 @@ export function HeaderSearch() {
 
             {/* 无结果 */}
             {query.trim() && results.length === 0 && (
-              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
-                <Search className="h-8 w-8 opacity-30" />
-                <span className="text-sm">无匹配结果</span>
-              </div>
+              <div className="py-8 text-center text-xs text-muted-foreground">无匹配结果</div>
             )}
 
             {/* 无历史 */}
             {!query.trim() && historyItems.length === 0 && (
-              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
-                <History className="h-8 w-8 opacity-30" />
-                <span className="text-sm">输入菜单名称搜索</span>
-              </div>
+              <div className="py-8 text-center text-xs text-muted-foreground">输入菜单名称搜索</div>
             )}
 
             {/* 结果列表 */}
@@ -208,20 +202,20 @@ export function HeaderSearch() {
                   onClick={() => handleSelect(item.path, title)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
-                    'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors',
+                    'group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors',
                     active
                       ? 'bg-accent text-foreground'
                       : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
                   )}
                 >
                   {query.trim() ? (
-                    <FileText className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : '')} />
+                    <FileText className={cn('h-3.5 w-3.5 shrink-0', active ? 'text-primary' : '')} />
                   ) : (
-                    <History className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : '')} />
+                    <History className={cn('h-3.5 w-3.5 shrink-0', active ? 'text-primary' : '')} />
                   )}
                   <span className="flex-1 truncate">{title}</span>
                   <ArrowRight className={cn(
-                    'h-3.5 w-3.5 shrink-0 transition-opacity',
+                    'h-3 w-3 shrink-0 transition-opacity',
                     active ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'
                   )} />
                 </button>
@@ -231,17 +225,17 @@ export function HeaderSearch() {
 
           {/* 底部提示 */}
           {displayItems.length > 0 && (
-            <div className="flex items-center gap-4 border-t border-border/50 px-4 py-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-3 border-t border-border/50 px-3 py-1.5 text-[10px] text-muted-foreground">
               <span className="flex items-center gap-1">
-                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">↑↓</kbd>
+                <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px]">↑↓</kbd>
                 导航
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">↵</kbd>
+                <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px]">↵</kbd>
                 选择
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">Esc</kbd>
+                <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px]">Esc</kbd>
                 关闭
               </span>
             </div>
