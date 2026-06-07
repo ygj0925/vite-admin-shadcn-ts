@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/popover"
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -53,7 +52,6 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>导航菜单</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive =
