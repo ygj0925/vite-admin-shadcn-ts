@@ -10,12 +10,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ChevronDown, ChevronUp, Settings2 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[]
@@ -71,6 +70,33 @@ export function DataTable<T extends { id: string | number }>({
 
   return (
     <div className="space-y-3">
+      {/* 顶部工具栏 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {selectedIds.length > 0 && (
+            <span className="text-xs text-muted-foreground">已选 {selectedIds.length} 项</span>
+          )}
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1">
+              <Settings2 className="h-3.5 w-3.5" /> 列设置
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table.getAllColumns().filter((c) => c.getCanHide()).map((column) => (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                checked={column.getIsVisible()}
+                onCheckedChange={(v) => column.toggleVisibility(v)}
+              >
+                {typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <div className="rounded border">
         <Table>
           <TableHeader>
@@ -130,68 +156,56 @@ export function DataTable<T extends { id: string | number }>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end gap-4">
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1">
-                <Settings2 className="h-3.5 w-3.5" /> 列设置
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {table.getAllColumns().filter((c) => c.getCanHide()).map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(v) => column.toggleVisibility(v)}
-                >
-                  {typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id}
-                </DropdownMenuCheckboxItem>
+          <span className="text-xs text-muted-foreground">每页</span>
+          <Select value={String(size)} onValueChange={(v) => onSizeChange?.(Number(v))}>
+            <SelectTrigger className="h-8 w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 50, 100].map((s) => (
+                <SelectItem key={s} value={String(s)}>{s}</SelectItem>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {selectedIds.length > 0 && (
-            <span className="text-xs text-muted-foreground">已选 {selectedIds.length} 项</span>
-          )}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-muted-foreground">条</span>
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">每页</span>
-            <Select value={String(size)} onValueChange={(v) => onSizeChange?.(Number(v))}>
-              <SelectTrigger className="h-8 w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[10, 20, 50, 100].map((s) => (
-                  <SelectItem key={s} value={String(s)}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">条</span>
-          </div>
-          <span className="text-xs text-muted-foreground">共 {total} 条</span>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious onClick={() => page > 1 && onPageChange?.(page - 1)} className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-              </PaginationItem>
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i
-                if (p > totalPages) return null
-                return (
-                  <PaginationItem key={p}>
-                    <PaginationLink onClick={() => onPageChange?.(p)} isActive={p === page} className="cursor-pointer">
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              })}
-              <PaginationItem>
-                <PaginationNext onClick={() => page < totalPages && onPageChange?.(page + 1)} className={page >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+        <span className="text-xs text-muted-foreground">共 {total} 条</span>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={page <= 1}
+            onClick={() => onPageChange?.(page - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i
+            if (p > totalPages) return null
+            return (
+              <Button
+                key={p}
+                variant={p === page ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onPageChange?.(p)}
+              >
+                {p}
+              </Button>
+            )
+          })}
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={page >= totalPages}
+            onClick={() => onPageChange?.(page + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
