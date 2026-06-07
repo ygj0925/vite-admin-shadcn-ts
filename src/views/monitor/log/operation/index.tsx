@@ -38,26 +38,29 @@ export default function OperationLogPage() {
     useCrud<LogEntry, any>({ listApi })
 
   const columns: ColumnDef<LogEntry, any>[] = [
-    { accessorKey: 'module', header: '模块' },
-    { accessorKey: 'description', header: '描述' },
-    { accessorKey: 'requestMethod', header: '请求方式' },
-    { accessorKey: 'requestUrl', header: '请求地址' },
-    { accessorKey: 'ip', header: 'IP地址' },
+    { accessorKey: 'module', header: '模块', size: 120 },
+    { accessorKey: 'description', header: '描述', size: 200 },
+    { accessorKey: 'requestMethod', header: '请求方式', size: 100 },
+    { accessorKey: 'requestUrl', header: '请求地址', size: 250 },
+    { accessorKey: 'ip', header: 'IP地址', size: 140 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'destructive'}>
           {row.original.status === 1 ? '成功' : '失败'}
         </Badge>
       ),
     },
-    { accessorKey: 'duration', header: '耗时', cell: ({ row }) => `${row.original.duration}ms` },
-    { accessorKey: 'createUser', header: '操作人' },
-    { accessorKey: 'createTime', header: '操作时间' },
+    { accessorKey: 'duration', header: '耗时', size: 80, cell: ({ row }) => `${row.original.duration}ms` },
+    { accessorKey: 'createUser', header: '操作人', size: 120 },
+    { accessorKey: 'createTime', header: '操作时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 80,
+      enableResizing: false,
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" onClick={() => { setCurrent(row.original); setDetailOpen(true) }}>
           <Eye className="h-4 w-4" />

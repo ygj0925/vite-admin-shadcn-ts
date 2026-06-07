@@ -726,17 +726,19 @@ export default function GeneratorPage() {
       ),
       enableSorting: false, enableHiding: false, size: 40,
     },
-    { accessorKey: 'tableName', header: '表名', cell: ({ row }) => <span className="font-mono text-sm">{row.original.tableName}</span> },
-    { accessorKey: 'comment', header: '表注释', cell: ({ row }) => row.original.comment || '-' },
-    { accessorKey: 'classNamePrefix', header: '类名前缀', cell: ({ row }) => row.original.classNamePrefix || '-' },
-    { accessorKey: 'author', header: '作者' },
-    { accessorKey: 'moduleName', header: '模块名称' },
-    { accessorKey: 'packageName', header: '包名称' },
-    { accessorKey: 'createTime', header: '创建时间' },
-    { accessorKey: 'updateTime', header: '更新时间' },
+    { accessorKey: 'tableName', header: '表名', size: 200, cell: ({ row }) => <span className="font-mono text-sm">{row.original.tableName}</span> },
+    { accessorKey: 'comment', header: '表注释', size: 150, cell: ({ row }) => row.original.comment || '-' },
+    { accessorKey: 'classNamePrefix', header: '类名前缀', size: 140, cell: ({ row }) => row.original.classNamePrefix || '-' },
+    { accessorKey: 'author', header: '作者', size: 100 },
+    { accessorKey: 'moduleName', header: '模块名称', size: 150 },
+    { accessorKey: 'packageName', header: '包名称', size: 200 },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
+    { accessorKey: 'updateTime', header: '更新时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 220,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {has('code:generator:config') && (

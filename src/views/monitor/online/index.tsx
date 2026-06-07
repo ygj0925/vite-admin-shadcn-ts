@@ -41,17 +41,19 @@ export default function OnlineUserPage() {
   }
 
   const columns: ColumnDef<OnlineUser, any>[] = [
-    { accessorKey: 'username', header: '用户名' },
-    { accessorKey: 'nickname', header: '昵称' },
-    { accessorKey: 'ip', header: 'IP地址' },
-    { accessorKey: 'address', header: '登录地点' },
-    { accessorKey: 'browser', header: '浏览器' },
-    { accessorKey: 'os', header: '操作系统' },
-    { accessorKey: 'loginTime', header: '登录时间' },
-    { accessorKey: 'lastActiveTime', header: '最后活跃', cell: ({ row }) => (row.original as any).lastActiveTime || '-' },
+    { accessorKey: 'username', header: '用户名', size: 120 },
+    { accessorKey: 'nickname', header: '昵称', size: 120 },
+    { accessorKey: 'ip', header: 'IP地址', size: 140 },
+    { accessorKey: 'address', header: '登录地点', size: 150 },
+    { accessorKey: 'browser', header: '浏览器', size: 120 },
+    { accessorKey: 'os', header: '操作系统', size: 120 },
+    { accessorKey: 'loginTime', header: '登录时间', size: 180 },
+    { accessorKey: 'lastActiveTime', header: '最后活跃', size: 180, cell: ({ row }) => (row.original as any).lastActiveTime || '-' },
     {
       id: 'actions',
       header: '操作',
+      size: 100,
+      enableResizing: false,
       cell: ({ row }) => (
         <Button
           variant="ghost"

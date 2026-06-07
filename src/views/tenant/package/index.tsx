@@ -93,21 +93,24 @@ export default function TenantPackagePage() {
   }
 
   const columns: ColumnDef<TenantPackage, any>[] = [
-    { accessorKey: 'name', header: '套餐名称' },
+    { accessorKey: 'name', header: '套餐名称', size: 150 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
           {row.original.status === 1 ? '启用' : '禁用'}
         </Badge>
       ),
     },
-    { accessorKey: 'description', header: '描述' },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'description', header: '描述', size: 250 },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => handleEdit(row.original)}>

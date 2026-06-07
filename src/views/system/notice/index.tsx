@@ -132,10 +132,11 @@ export default function NoticePage() {
   const handleResetClick = () => { setSearchTitle(''); setSearchType(''); handleReset() }
 
   const columns: ColumnDef<Notice, any>[] = [
-    { accessorKey: 'title', header: '标题' },
+    { accessorKey: 'title', header: '标题', size: 200 },
     {
       accessorKey: 'type',
       header: '类型',
+      size: 90,
       cell: ({ row }) => (
         <Badge variant={row.original.type === 1 ? 'default' : 'secondary'}>
           {row.original.type === 1 ? '通知' : '公告'}
@@ -145,18 +146,21 @@ export default function NoticePage() {
     {
       accessorKey: 'status',
       header: '状态',
+      size: 90,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
           {row.original.status === 1 ? '启用' : '禁用'}
         </Badge>
       ),
     },
-    { accessorKey: 'startTime', header: '开始时间', cell: ({ row }) => row.original.startTime || '-' },
-    { accessorKey: 'endTime', header: '结束时间', cell: ({ row }) => row.original.endTime || '-' },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'startTime', header: '开始时间', size: 180, cell: ({ row }) => row.original.startTime || '-' },
+    { accessorKey: 'endTime', header: '结束时间', size: 180, cell: ({ row }) => row.original.endTime || '-' },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {has('system:notice:get') && (

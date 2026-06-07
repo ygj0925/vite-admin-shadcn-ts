@@ -198,9 +198,13 @@
     @apply font-sans scroll-smooth;
   }
 
-  /* Modern focus styles */
+  /* Modern focus styles - subtle ring for buttons etc. */
   *:focus-visible {
-    @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
+    @apply outline-none;
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.5 0.2 265 / 0.15);
+  }
+  .dark *:focus-visible {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.6 0.2 265 / 0.2);
   }
 
   /* Theme switching: force instant transition on all properties */

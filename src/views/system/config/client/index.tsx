@@ -98,13 +98,14 @@ export default function ClientConfigPage() {
   }
 
   const columns: ColumnDef<OAuthClient, any>[] = [
-    { accessorKey: 'name', header: '名称' },
-    { accessorKey: 'clientId', header: 'Client ID' },
-    { accessorKey: 'logo', header: 'Logo' },
-    { accessorKey: 'grantTypes', header: '授权类型' },
+    { accessorKey: 'name', header: '名称', size: 150 },
+    { accessorKey: 'clientId', header: 'Client ID', size: 180 },
+    { accessorKey: 'logo', header: 'Logo', size: 120 },
+    { accessorKey: 'grantTypes', header: '授权类型', size: 150 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
           {row.original.status === 1 ? '启用' : '禁用'}
@@ -114,6 +115,8 @@ export default function ClientConfigPage() {
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => handleEdit(row.original)}>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, History, FileText, ArrowRight } from 'lucide-react'
+import { Search, History, FileText, ArrowRight, X } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useRouteStore } from '@/stores/route'
 import { cn } from '@/lib/utils'
@@ -50,7 +50,6 @@ export function HeaderSearch() {
 
   const handleSelect = useCallback(
     (path: string, title?: string) => {
-      // 保存历史
       const newHistory = [path, ...history.filter((h) => h !== path)].slice(0, MAX_HISTORY)
       saveHistory(newHistory)
       setHistory(newHistory)
@@ -134,8 +133,9 @@ export function HeaderSearch() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
-          <div className="flex items-center border-b border-border/50 px-4">
+        <DialogContent showCloseButton={false} className="overflow-hidden p-0 gap-0 sm:max-w-sm">
+          {/* 搜索输入区 */}
+          <div className="flex items-center gap-2.5 border-b border-border/50 px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
@@ -146,17 +146,27 @@ export function HeaderSearch() {
               }}
               onKeyDown={handleKeyDown}
               placeholder="搜索菜单..."
-              className="flex h-12 w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
+              className="flex h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
+            {query && (
+              <button
+                onClick={() => { setQuery(''); setActiveIndex(0); inputRef.current?.focus() }}
+                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
-          <div className="max-h-80 overflow-auto p-2">
+
+          {/* 结果区 */}
+          <div className="max-h-64 overflow-auto py-1.5 px-1.5">
             {/* 历史记录标题 */}
             {!query.trim() && historyItems.length > 0 && (
-              <div className="flex items-center justify-between px-2 py-1.5">
-                <span className="text-xs font-medium text-muted-foreground">搜索历史</span>
+              <div className="flex items-center justify-between px-2 py-1">
+                <span className="text-[11px] font-medium text-muted-foreground">搜索历史</span>
                 <button
                   onClick={clearHistory}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                 >
                   清除
                 </button>
@@ -165,8 +175,8 @@ export function HeaderSearch() {
 
             {/* 搜索结果标题 */}
             {query.trim() && results.length > 0 && (
-              <div className="px-2 py-1.5">
-                <span className="text-xs font-medium text-muted-foreground">
+              <div className="px-2 py-1">
+                <span className="text-[11px] font-medium text-muted-foreground">
                   搜索结果 ({results.length})
                 </span>
               </div>
@@ -174,37 +184,68 @@ export function HeaderSearch() {
 
             {/* 无结果 */}
             {query.trim() && results.length === 0 && (
-              <div className="py-8 text-center text-sm text-muted-foreground">无匹配结果</div>
+              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+                <Search className="h-8 w-8 opacity-30" />
+                <span className="text-sm">无匹配结果</span>
+              </div>
             )}
 
+            {/* 无历史 */}
             {!query.trim() && historyItems.length === 0 && (
-              <div className="py-8 text-center text-sm text-muted-foreground">输入菜单名称搜索</div>
+              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+                <History className="h-8 w-8 opacity-30" />
+                <span className="text-sm">输入菜单名称搜索</span>
+              </div>
             )}
 
             {/* 结果列表 */}
             {displayItems.map((item: any, index: number) => {
               const title = item.meta?.title || item.title || ''
+              const active = index === activeIndex
               return (
                 <button
                   key={item.path}
                   onClick={() => handleSelect(item.path, title)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors',
-                    index === activeIndex ? 'bg-accent text-foreground' : 'text-muted-foreground'
+                    'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors',
+                    active
+                      ? 'bg-accent text-foreground'
+                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
                   )}
                 >
                   {query.trim() ? (
-                    <FileText className="h-4 w-4 shrink-0" />
+                    <FileText className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : '')} />
                   ) : (
-                    <History className="h-4 w-4 shrink-0" />
+                    <History className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : '')} />
                   )}
                   <span className="flex-1 truncate">{title}</span>
-                  <ArrowRight className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowRight className={cn(
+                    'h-3.5 w-3.5 shrink-0 transition-opacity',
+                    active ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'
+                  )} />
                 </button>
               )
             })}
           </div>
+
+          {/* 底部提示 */}
+          {displayItems.length > 0 && (
+            <div className="flex items-center gap-4 border-t border-border/50 px-4 py-2 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">↑↓</kbd>
+                导航
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">↵</kbd>
+                选择
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">Esc</kbd>
+                关闭
+              </span>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

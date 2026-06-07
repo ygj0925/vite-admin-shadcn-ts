@@ -141,11 +141,12 @@ export default function OpenAppPage() {
   }
 
   const columns: ColumnDef<OpenApp, any>[] = [
-    { accessorKey: 'name', header: '应用名称' },
-    { accessorKey: 'accessKey', header: 'Access Key' },
+    { accessorKey: 'name', header: '应用名称', size: 150 },
+    { accessorKey: 'accessKey', header: 'Access Key', size: 180 },
     {
       accessorKey: 'secretKey',
       header: 'Secret Key',
+      size: 200,
       cell: ({ row }) => {
         const visible = visibleSecrets[row.original.id]
         return (
@@ -167,16 +168,19 @@ export default function OpenAppPage() {
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
           {row.original.status === 1 ? '启用' : '禁用'}
         </Badge>
       ),
     },
-    { accessorKey: 'description', header: '描述' },
+    { accessorKey: 'description', header: '描述', size: 250 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {has('open:app:update') && (

@@ -80,23 +80,26 @@ export default function JobLogPage() {
     options.find((o) => o.value === val)?.label || String(val)
 
   const columns: ColumnDef<JobLog, any>[] = [
-    { accessorKey: 'jobName', header: '任务名称' },
-    { accessorKey: 'groupName', header: '任务分组' },
+    { accessorKey: 'jobName', header: '任务名称', size: 150 },
+    { accessorKey: 'groupName', header: '任务分组', size: 120 },
     {
       accessorKey: 'taskBatchStatus',
       header: '状态',
+      size: 90,
       cell: ({ row }) => (
         <Badge variant={row.original.taskBatchStatus === 1 ? 'default' : row.original.taskBatchStatus === 2 ? 'destructive' : 'secondary'}>
           {dictLabel(STATUS_OPTIONS, row.original.taskBatchStatus)}
         </Badge>
       ),
     },
-    { accessorKey: 'executorInfo', header: '执行器信息' },
-    { accessorKey: 'executionAt', header: '执行时间' },
-    { accessorKey: 'createDt', header: '创建时间' },
+    { accessorKey: 'executorInfo', header: '执行器信息', size: 180 },
+    { accessorKey: 'executionAt', header: '执行时间', size: 180 },
+    { accessorKey: 'createDt', header: '创建时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => { setCurrent(row.original); setDetailOpen(true) }}>

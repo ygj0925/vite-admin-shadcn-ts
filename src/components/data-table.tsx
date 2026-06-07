@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type ColumnSizingState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -12,7 +13,6 @@ import {
 } from '@tanstack/react-table'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -46,24 +46,27 @@ export function DataTable<T extends { id: string | number }>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
 
   const table = useReactTable({
     data,
     columns,
+    columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
     onRowSelectionChange: (updater) => {
       const newSelection = typeof updater === 'function' ? updater(rowSelection) : updater
       setRowSelection(newSelection)
       const ids = Object.keys(newSelection).filter((k) => newSelection[k]).map((k) => String(data[Number(k)]?.id))
       onSelectionChange?.(ids)
     },
-    state: { sorting, columnFilters, columnVisibility, rowSelection },
+    state: { sorting, columnFilters, columnVisibility, columnSizing, rowSelection },
   })
 
   const totalPages = Math.ceil(total / size)
@@ -98,63 +101,91 @@ export function DataTable<T extends { id: string | number }>({
         </DropdownMenu>
       </div>
 
-      <div className="rounded border">
-        <Table>
-          <TableHeader>
+      <div className="rounded border overflow-x-auto">
+        <table className="w-full text-sm" style={{ width: table.getCenterTotalSize() }}>
+          <thead className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={header.column.getCanSort() ? 'flex cursor-pointer select-none items-center gap-1' : ''}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanSort() && (
-                          header.column.getIsSorted() === 'asc' ? <ChevronUp className="h-3 w-3" /> :
-                          header.column.getIsSorted() === 'desc' ? <ChevronDown className="h-3 w-3" /> : null
-                        )}
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const isPinned = header.column.getIsPinned()
+                  const isActions = header.column.id === 'actions'
+                  return (
+                    <th
+                      key={header.id}
+                      className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground relative"
+                      style={{
+                        width: header.getSize(),
+                        ...(isPinned ? { position: 'sticky', right: 0, zIndex: 2, background: 'hsl(var(--background))' } : {}),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={header.column.getCanSort() ? 'flex cursor-pointer select-none items-center gap-1' : ''}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanSort() && (
+                            header.column.getIsSorted() === 'asc' ? <ChevronUp className="h-3 w-3" /> :
+                            header.column.getIsSorted() === 'desc' ? <ChevronDown className="h-3 w-3" /> : null
+                          )}
+                        </div>
+                      )}
+                      {!isActions && header.column.getCanResize() && (
+                        <div
+                          className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none hover:bg-primary/30"
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                        />
+                      )}
+                    </th>
+                  )
+                })}
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
+          </thead>
+          <tbody className="[&_tr:last-child]:border-0">
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+              <tr>
+                <td colSpan={columns.length} className="p-2 h-24 text-center">
                   <div className="flex items-center justify-center">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : table.getRowModel().rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+              <tr>
+                <td colSpan={columns.length} className="p-2 h-24 text-center text-muted-foreground">
                   暂无数据
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => onRowClick?.(row.original)}
-                  className={onRowClick ? 'cursor-pointer' : ''}
+                  className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${onRowClick ? 'cursor-pointer' : ''}`}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                  {row.getVisibleCells().map((cell) => {
+                    const isPinned = cell.column.getIsPinned()
+                    return (
+                      <td
+                        key={cell.id}
+                        className="p-2 align-middle whitespace-nowrap"
+                        style={{
+                          width: cell.column.getSize(),
+                          ...(isPinned ? { position: 'sticky', right: 0, zIndex: 1, background: 'hsl(var(--background))' } : {}),
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    )
+                  })}
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       <div className="flex items-center justify-end gap-4">

@@ -80,20 +80,20 @@ export default function DictTreePage() {
   }
 
   const itemColumns: ColumnDef<DictItem>[] = useMemo(() => [
-    { accessorKey: 'label', header: '标签' },
-    { accessorKey: 'value', header: '值' },
-    { accessorKey: 'sort', header: '排序', size: 60 },
+    { accessorKey: 'label', header: '标签', size: 120 },
+    { accessorKey: 'value', header: '值', size: 120 },
+    { accessorKey: 'sort', header: '排序', size: 80 },
     {
-      accessorKey: 'status', header: '状态', size: 80,
+      accessorKey: 'status', header: '状态', size: 90,
       cell: ({ row }) => <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>{row.original.status === 1 ? '启用' : '禁用'}</Badge>,
     },
     {
-      accessorKey: 'color', header: '颜色', size: 80,
+      accessorKey: 'color', header: '颜色', size: 90,
       cell: ({ row }) => row.original.color ? <Badge style={{ backgroundColor: row.original.color }}>{row.original.color}</Badge> : '-',
     },
-    { accessorKey: 'description', header: '描述' },
+    { accessorKey: 'description', header: '描述', size: 200 },
     {
-      id: 'actions', header: '操作', size: 100,
+      id: 'actions', header: '操作', size: 100, enableResizing: false,
       cell: ({ row }) => (
         <div className="flex gap-1">
           {has('system:dictItem:update') && (

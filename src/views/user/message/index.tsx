@@ -7,7 +7,6 @@ import {
   Search,
   Bell,
   Megaphone,
-  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -145,10 +144,11 @@ function MyMessageTab({ unreadCount }: { unreadCount: number }) {
   }
 
   const columns: ColumnDef<Message, any>[] = [
-    { accessorKey: 'title', header: '标题' },
+    { accessorKey: 'title', header: '标题', size: 250 },
     {
       accessorKey: 'type',
       header: '类型',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.type === 1 ? 'default' : 'secondary'}>
           {messageTypes[row.original.type] || '未知'}
@@ -158,16 +158,19 @@ function MyMessageTab({ unreadCount }: { unreadCount: number }) {
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'outline' : 'destructive'}>
           {row.original.status === 1 ? '已读' : '未读'}
         </Badge>
       ),
     },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 100,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button
@@ -329,10 +332,11 @@ function MyNoticeTab() {
   }
 
   const columns: ColumnDef<Notice, any>[] = [
-    { accessorKey: 'title', header: '标题' },
+    { accessorKey: 'title', header: '标题', size: 250 },
     {
       accessorKey: 'type',
       header: '类型',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.type === 1 ? 'default' : 'secondary'}>
           {noticeTypes[row.original.type] || '未知'}
@@ -342,16 +346,19 @@ function MyNoticeTab() {
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'outline' : 'secondary'}>
           {row.original.status === 1 ? '已发布' : '草稿'}
         </Badge>
       ),
     },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 100,
+      enableResizing: false,
       cell: ({ row }) => (
         <Button
           variant="ghost"

@@ -36,25 +36,28 @@ export default function LoginLogPage() {
     useCrud<LogEntry, any>({ listApi })
 
   const columns: ColumnDef<LogEntry, any>[] = [
-    { accessorKey: 'username', header: '用户名' },
-    { accessorKey: 'ip', header: 'IP地址' },
-    { accessorKey: 'address', header: '登录地点' },
-    { accessorKey: 'browser', header: '浏览器' },
-    { accessorKey: 'os', header: '操作系统' },
+    { accessorKey: 'username', header: '用户名', size: 120 },
+    { accessorKey: 'ip', header: 'IP地址', size: 140 },
+    { accessorKey: 'address', header: '登录地点', size: 150 },
+    { accessorKey: 'browser', header: '浏览器', size: 120 },
+    { accessorKey: 'os', header: '操作系统', size: 120 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'destructive'}>
           {row.original.status === 1 ? '成功' : '失败'}
         </Badge>
       ),
     },
-    { accessorKey: 'description', header: '描述' },
-    { accessorKey: 'createTime', header: '登录时间' },
+    { accessorKey: 'description', header: '描述', size: 200 },
+    { accessorKey: 'createTime', header: '登录时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 80,
+      enableResizing: false,
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" onClick={() => { setCurrent(row.original); setDetailOpen(true) }}>
           <Eye className="h-4 w-4" />

@@ -389,19 +389,22 @@ export default function UserPage() {
       {
         accessorKey: 'username',
         header: '用户名',
+        size: 130,
         cell: ({ row }) => <span className="font-medium">{row.original.username}</span>,
       },
-      { accessorKey: 'nickname', header: '昵称' },
+      { accessorKey: 'nickname', header: '昵称', size: 120 },
       {
         accessorKey: 'gender',
         header: '性别',
+        size: 80,
         cell: ({ row }) => (row.original.gender === 1 ? '男' : row.original.gender === 2 ? '女' : '-'),
       },
-      { accessorKey: 'phone', header: '手机号', cell: ({ row }) => row.original.phone || '-' },
-      { accessorKey: 'email', header: '邮箱', cell: ({ row }) => row.original.email || '-' },
+      { accessorKey: 'phone', header: '手机号', size: 140, cell: ({ row }) => row.original.phone || '-' },
+      { accessorKey: 'email', header: '邮箱', size: 180, cell: ({ row }) => row.original.email || '-' },
       {
         accessorKey: 'status',
         header: '状态',
+        size: 90,
         cell: ({ row }) =>
           row.original.status === 1 ? (
             <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10">启用</Badge>
@@ -409,11 +412,13 @@ export default function UserPage() {
             <Badge variant="secondary" className="bg-red-500/10 text-red-600 hover:bg-red-500/10">禁用</Badge>
           ),
       },
-      { accessorKey: 'deptName', header: '部门', cell: ({ row }) => row.original.deptName || '-' },
-      { accessorKey: 'createTime', header: '创建时间' },
+      { accessorKey: 'deptName', header: '部门', size: 150, cell: ({ row }) => row.original.deptName || '-' },
+      { accessorKey: 'createTime', header: '创建时间', size: 180 },
       {
         id: 'actions',
         header: '操作',
+        size: 100,
+        enableResizing: false,
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

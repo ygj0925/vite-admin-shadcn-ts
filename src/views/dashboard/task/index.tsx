@@ -125,7 +125,7 @@ export default function TaskPage() {
     { accessorKey: 'dueDate', header: '截止日期', size: 110 },
     { accessorKey: 'latestProgress', header: '最新进展', size: 150 },
     {
-      id: 'actions', header: '操作', size: 100,
+      id: 'actions', header: '操作', size: 100, enableResizing: false,
       cell: ({ row }) => (
         <div className="flex gap-1">
           {has('task:item:update') && (

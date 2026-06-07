@@ -28,20 +28,21 @@ export default function SmsLogPage() {
   })
 
   const columns: ColumnDef<SmsLog, any>[] = [
-    { accessorKey: 'phone', header: '手机号' },
-    { accessorKey: 'content', header: '内容' },
-    { accessorKey: 'provider', header: '服务商' },
+    { accessorKey: 'phone', header: '手机号', size: 140 },
+    { accessorKey: 'content', header: '内容', size: 250 },
+    { accessorKey: 'provider', header: '服务商', size: 120 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'destructive'}>
           {row.original.status === 1 ? '成功' : '失败'}
         </Badge>
       ),
     },
-    { accessorKey: 'sendTime', header: '发送时间' },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'sendTime', header: '发送时间', size: 180 },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
   ]
 
   return (

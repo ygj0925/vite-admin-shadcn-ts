@@ -153,12 +153,13 @@ export default function JobPage() {
     options.find((o) => o.value === val)?.label || String(val)
 
   const columns: ColumnDef<Job, any>[] = [
-    { accessorKey: 'jobName', header: '任务名称' },
-    { accessorKey: 'groupName', header: '任务分组' },
-    { accessorKey: 'triggerInterval', header: '触发间隔' },
+    { accessorKey: 'jobName', header: '任务名称', size: 150 },
+    { accessorKey: 'groupName', header: '任务分组', size: 120 },
+    { accessorKey: 'triggerInterval', header: '触发间隔', size: 120 },
     {
       accessorKey: 'jobStatus',
       header: '状态',
+      size: 120,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Switch checked={row.original.jobStatus === 1} onCheckedChange={() => handleToggleStatus(row.original)} />
@@ -171,13 +172,16 @@ export default function JobPage() {
     {
       accessorKey: 'taskType',
       header: '任务类型',
+      size: 100,
       cell: ({ row }) => dictLabel(TASK_TYPE_OPTIONS, row.original.taskType),
     },
-    { accessorKey: 'executorInfo', header: '执行器信息' },
-    { accessorKey: 'nextTriggerAt', header: '下次触发时间' },
+    { accessorKey: 'executorInfo', header: '执行器信息', size: 180 },
+    { accessorKey: 'nextTriggerAt', header: '下次触发时间', size: 180 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {has('schedule:job:update') && (

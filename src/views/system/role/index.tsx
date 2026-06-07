@@ -218,20 +218,24 @@ export default function RolePage() {
       {
         accessorKey: 'name',
         header: '角色名称',
+        size: 150,
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: 'code',
         header: '角色编码',
+        size: 140,
         cell: ({ row }) => <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{row.original.code}</code>,
       },
       {
         accessorKey: 'sort',
         header: '排序',
+        size: 80,
       },
       {
         accessorKey: 'status',
         header: '状态',
+        size: 90,
         cell: ({ row }) =>
           row.original.status === 1 ? (
             <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10">启用</Badge>
@@ -242,17 +246,21 @@ export default function RolePage() {
       {
         accessorKey: 'description',
         header: '描述',
+        size: 200,
         cell: ({ row }) => (
-          <span className="text-muted-foreground line-clamp-1 max-w-[200px]">{row.original.description || '-'}</span>
+          <span className="text-muted-foreground line-clamp-1">{row.original.description || '-'}</span>
         ),
       },
       {
         accessorKey: 'createTime',
         header: '创建时间',
+        size: 180,
       },
       {
         id: 'actions',
         header: '操作',
+        size: 100,
+        enableResizing: false,
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

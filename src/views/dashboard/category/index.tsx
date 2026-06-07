@@ -59,18 +59,18 @@ export default function CategoryPage() {
   }
 
   const columns: ColumnDef<TaskCategory>[] = [
-    { accessorKey: 'name', header: '分类名称' },
-    { accessorKey: 'code', header: '分类标识' },
+    { accessorKey: 'name', header: '分类名称', size: 150 },
+    { accessorKey: 'code', header: '分类标识', size: 120 },
     {
       accessorKey: 'status', header: '状态', size: 80,
       cell: ({ row }) => <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>{row.original.status === 1 ? '启用' : '禁用'}</Badge>,
     },
     { accessorKey: 'sort', header: '排序', size: 60 },
     { accessorKey: 'taskCount', header: '任务数', size: 80 },
-    { accessorKey: 'description', header: '描述' },
-    { accessorKey: 'createTime', header: '创建时间' },
+    { accessorKey: 'description', header: '描述', size: 200 },
+    { accessorKey: 'createTime', header: '创建时间', size: 180 },
     {
-      id: 'actions', header: '操作', size: 120,
+      id: 'actions', header: '操作', size: 120, enableResizing: false,
       cell: ({ row }) => (
         <div className="flex gap-1">
           {has('task:category:update') && (

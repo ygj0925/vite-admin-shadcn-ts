@@ -126,25 +126,28 @@ export default function TenantManagementPage() {
   }
 
   const columns: ColumnDef<Tenant, any>[] = [
-    { accessorKey: 'name', header: '租户名称' },
-    { accessorKey: 'code', header: '租户编码' },
-    { accessorKey: 'contactName', header: '联系人' },
-    { accessorKey: 'contactPhone', header: '联系电话' },
-    { accessorKey: 'packageName', header: '套餐' },
+    { accessorKey: 'name', header: '租户名称', size: 150 },
+    { accessorKey: 'code', header: '租户编码', size: 120 },
+    { accessorKey: 'contactName', header: '联系人', size: 120 },
+    { accessorKey: 'contactPhone', header: '联系电话', size: 140 },
+    { accessorKey: 'packageName', header: '套餐', size: 120 },
     {
       accessorKey: 'status',
       header: '状态',
+      size: 80,
       cell: ({ row }) => (
         <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
           {row.original.status === 1 ? '正常' : '禁用'}
         </Badge>
       ),
     },
-    { accessorKey: 'expireTime', header: '过期时间', cell: ({ row }) => row.original.expireTime || '永不过期' },
-    { accessorKey: 'accountLimit', header: '账号上限' },
+    { accessorKey: 'expireTime', header: '过期时间', size: 180, cell: ({ row }) => row.original.expireTime || '永不过期' },
+    { accessorKey: 'accountLimit', header: '账号上限', size: 100 },
     {
       id: 'actions',
       header: '操作',
+      size: 120,
+      enableResizing: false,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {has('tenant:management:update') && (
