@@ -19,7 +19,21 @@ export interface Role {
 }
 
 export function getRolePage(params: RolePageQuery) {
-  return get<PageRes<Role>>('/system/role', params)
+  return get<Role[]>('/system/role/list', { sort: ['sort,asc'] }).then((res) => {
+    // 后端返回全量列表，客户端分页
+    const list = res.data ?? []
+    const page = params.page ?? 1
+    const size = params.size ?? 10
+    // 按搜索条件过滤
+    const filtered = list.filter((item) => {
+      if (params.name && !item.name.includes(params.name)) return false
+      if (params.status !== undefined && item.status !== params.status) return false
+      return true
+    })
+    const start = (page - 1) * size
+    res.data = { list: filtered.slice(start, start + size), total: filtered.length }
+    return res as unknown as { data: PageRes<Role> }
+  })
 }
 
 export function getRoleById(id: number) {
@@ -42,8 +56,8 @@ export function getPermissionTree() {
   return get<any[]>('/system/role/permission/tree')
 }
 
-export function updatePermission(id: number, permissions: string[]) {
-  return put(`/system/role/${id}/permission`, { permissions })
+export function updatePermission(id: number, menuIds: string[], menuCheckStrictly = true) {
+  return put(`/system/role/${id}/permission`, { menuIds, menuCheckStrictly })
 }
 
 export function getRoleUserPage(id: number, params: PageQuery) {

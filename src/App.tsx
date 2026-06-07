@@ -9,7 +9,16 @@ function App() {
   const theme = useAppStore((s) => s.theme)
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    const html = document.documentElement
+    // 切换主题时，临时禁用所有过渡动画，避免边框和背景不同步
+    html.classList.add('theme-switching')
+    html.classList.toggle('dark', theme === 'dark')
+    // 下一帧移除，让后续交互的过渡正常工作
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        html.classList.remove('theme-switching')
+      })
+    })
   }, [theme])
 
   useVersionCheck()

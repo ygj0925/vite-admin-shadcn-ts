@@ -347,7 +347,7 @@ export default function DictPage() {
               <Tag className="h-4 w-4" />
               {selectedDict ? `${selectedDict.name} - 字典项` : '字典项'}
             </CardTitle>
-            {selectedDict && has('system:dict:create') && (
+            {selectedDict && has('system:dictItem:create') && (
               <Button size="sm" onClick={openAddItem}>
                 <Plus className="mr-1 h-3.5 w-3.5" />
                 新增
@@ -408,12 +408,12 @@ export default function DictPage() {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
-                                {has('system:dict:update') && (
+                                {has('system:dictItem:update') && (
                                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditItem(item)}>
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
                                 )}
-                                {has('system:dict:delete') && (
+                                {has('system:dictItem:delete') && (
                                   <Button
                                     variant="ghost"
                                     size="icon"

@@ -96,12 +96,12 @@ export default function DictTreePage() {
       id: 'actions', header: '操作', size: 100,
       cell: ({ row }) => (
         <div className="flex gap-1">
-          {has('system:dict:update') && (
+          {has('system:dictItem:update') && (
             <Button variant="ghost" size="sm" onClick={() => { setEditingItem(row.original); setItemFormOpen(true) }}>
               <Edit className="h-3.5 w-3.5" />
             </Button>
           )}
-          {has('system:dict:delete') && (
+          {has('system:dictItem:delete') && (
             <DeleteConfirm onConfirm={async () => {
               await deleteDictItem([String(row.original.id)])
               toast.success('删除成功')
@@ -216,7 +216,7 @@ export default function DictTreePage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-base">
             <span>{selectedDict ? `${selectedDict.name} - 字典项` : '请选择字典'}</span>
-            {selectedDict && has('system:dict:create') && (
+            {selectedDict && has('system:dictItem:create') && (
               <Button size="sm" onClick={() => { setEditingItem(null); setItemFormOpen(true) }}>
                 <Plus className="h-4 w-4 mr-1" /> 新增字典项
               </Button>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Plus, ChevronRight, ChevronDown, Pencil, Trash2, RefreshCw, Folder, FileText, Key, Loader2, Search, List, MindMapping } from 'lucide-react'
+import { Plus, ChevronRight, ChevronDown, Pencil, Trash2, RefreshCw, Folder, FileText, Key, Loader2, Search, List, ListTree } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -360,7 +360,7 @@ export default function MenuPage() {
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={expandAll}>
-          <MindMapping className="mr-2 h-4 w-4" /> 展开
+          <ListTree className="mr-2 h-4 w-4" /> 展开
         </Button>
         <Button variant="outline" size="sm" onClick={collapseAll}>
           <List className="mr-2 h-4 w-4" /> 折叠

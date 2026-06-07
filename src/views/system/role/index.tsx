@@ -267,7 +267,7 @@ export default function RolePage() {
                   编辑
                 </DropdownMenuItem>
               )}
-              {has('system:role:update') && (
+              {has('system:role:updatePermission') && (
                 <DropdownMenuItem onClick={() => openPermission(row.original)}>
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   权限配置

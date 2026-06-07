@@ -159,9 +159,11 @@ export default function NoticePage() {
       header: '操作',
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => { setDetailItem(row.original); setDetailOpen(true) }}>
-            <Eye className="h-4 w-4" />
-          </Button>
+          {has('system:notice:get') && (
+            <Button variant="ghost" size="sm" onClick={() => { setDetailItem(row.original); setDetailOpen(true) }}>
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
           {has('system:notice:update') && (
             <Button variant="ghost" size="sm" onClick={() => handleEdit(row.original)}>
               <Pencil className="h-4 w-4" />

@@ -4,7 +4,7 @@ export function usePermission() {
   const permissions = useUserStore((s) => s.permissions)
 
   const has = (perm: string): boolean => {
-    if (permissions.includes('*')) return true
+    if (permissions.includes('*') || permissions.includes('*:*:*')) return true
     return permissions.includes(perm)
   }
 

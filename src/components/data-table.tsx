@@ -89,6 +89,7 @@ export function DataTable<T extends { id: string | number }>({
                 key={column.id}
                 checked={column.getIsVisible()}
                 onCheckedChange={(v) => column.toggleVisibility(v)}
+                onSelect={(e) => e.preventDefault()}
               >
                 {typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id}
               </DropdownMenuCheckboxItem>

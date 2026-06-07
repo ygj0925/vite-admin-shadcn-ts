@@ -427,12 +427,12 @@ export default function UserPage() {
                   <Pencil className="mr-2 h-4 w-4" />编辑
                 </DropdownMenuItem>
               )}
-              {has('system:user:update') && (
+              {has('system:user:resetPwd') && (
                 <DropdownMenuItem onClick={() => openResetPassword(row.original.id)}>
                   <KeyRound className="mr-2 h-4 w-4" />重置密码
                 </DropdownMenuItem>
               )}
-              {has('system:user:update') && (
+              {has('system:user:updateRole') && (
                 <DropdownMenuItem onClick={() => openAssignRole(row.original)}>
                   <UserCog className="mr-2 h-4 w-4" />分配角色
                 </DropdownMenuItem>
@@ -547,9 +547,11 @@ export default function UserPage() {
                 <Upload className="mr-1.5 h-3.5 w-3.5" />导入
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="mr-1.5 h-3.5 w-3.5" />导出
-            </Button>
+            {has('system:user:export') && (
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="mr-1.5 h-3.5 w-3.5" />导出
+              </Button>
+            )}
           </div>
 
           {/* Data table */}
