@@ -1,18 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Plus, ChevronRight, ChevronDown, Pencil, Trash2, RefreshCw, Folder, FileText, Key, Loader2 } from 'lucide-react'
+import { Plus, ChevronRight, ChevronDown, Pencil, Trash2, RefreshCw, Folder, FileText, Key, Loader2, Search, List, MindMapping } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { CrudForm, type FormField } from '@/components/crud-form'
 import { DeleteConfirm } from '@/components/delete-confirm'
 import { usePermission } from '@/hooks/use-permission'
 import { getMenuTree, addMenu, updateMenu, deleteMenu, clearMenuCache, type Menu } from '@/apis/system/menu'
+import { SvgIcon } from '@/components/svg-icon'
 
 const typeMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-  0: { label: '目录', variant: 'default' },
-  1: { label: '菜单', variant: 'secondary' },
-  2: { label: '按钮', variant: 'outline' },
+  1: { label: '目录', variant: 'default' },
+  2: { label: '菜单', variant: 'secondary' },
+  3: { label: '按钮', variant: 'outline' },
 }
 
 export default function MenuPage() {
@@ -26,6 +28,11 @@ export default function MenuPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Menu | null>(null)
+
+  // 搜索状态
+  const [searchTitle, setSearchTitle] = useState('')
+  const [searchPath, setSearchPath] = useState('')
+  const [searchPermission, setSearchPermission] = useState('')
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -52,6 +59,36 @@ export default function MenuPage() {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // 搜索过滤
+  const searchData = useCallback((items: Menu[], title: string, path: string, permission: string): Menu[] => {
+    return items.reduce((acc: Menu[], item) => {
+      const titleMatch = !title || item.title?.toLowerCase().includes(title.toLowerCase())
+      const pathMatch = !path || item.path?.toLowerCase().includes(path.toLowerCase())
+      const permissionMatch = !permission || item.permission?.toLowerCase().includes(permission.toLowerCase())
+
+      if (titleMatch && pathMatch && permissionMatch) {
+        acc.push({ ...item })
+      } else if (item.children) {
+        const filteredChildren = searchData(item.children, title, path, permission)
+        if (filteredChildren.length > 0) {
+          acc.push({ ...item, children: filteredChildren })
+        }
+      }
+      return acc
+    }, [])
+  }, [])
+
+  const filteredData = useMemo(() => {
+    if (!searchTitle && !searchPath && !searchPermission) return data
+    return searchData(data, searchTitle, searchPath, searchPermission)
+  }, [data, searchTitle, searchPath, searchPermission, searchData])
+
+  const resetSearch = () => {
+    setSearchTitle('')
+    setSearchPath('')
+    setSearchPermission('')
+  }
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
@@ -89,7 +126,7 @@ export default function MenuPage() {
 
   const openAddForm = (parentId: number = 0) => {
     setFormTitle(parentId === 0 ? '新增根菜单' : '新增子菜单')
-    setFormValues({ parentId, type: '0', sort: 0, status: 1, cache: true, hidden: false, alwaysShow: false })
+    setFormValues({ parentId, type: '1', sort: 0, status: 1, cache: true, hidden: false, alwaysShow: false })
     setFormOpen(true)
   }
 
@@ -160,20 +197,22 @@ export default function MenuPage() {
       type: 'select',
       required: true,
       options: [
-        { label: '目录', value: '0' },
-        { label: '菜单', value: '1' },
-        { label: '按钮', value: '2' },
+        { label: '目录', value: '1' },
+        { label: '菜单', value: '2' },
+        { label: '按钮', value: '3' },
       ],
     },
     { name: 'path', label: '路由地址', type: 'input', placeholder: '请输入路由地址' },
-    { name: 'component', label: '组件路径', type: 'input', placeholder: '请输入组件路径', hidden: formValues.type === '0' || formValues.type === '2' },
-    { name: 'icon', label: '图标', type: 'input', placeholder: '请输入图标名称', hidden: formValues.type === '2' },
-    { name: 'permission', label: '权限标识', type: 'input', placeholder: '如: system:user:create', hidden: formValues.type === '0' },
+    { name: 'name', label: '组件名称', type: 'input', placeholder: '请输入组件名称', hidden: formValues.type !== '2' },
+    { name: 'component', label: '组件路径', type: 'input', placeholder: '请输入组件路径', hidden: formValues.type !== '2' },
+    { name: 'icon', label: '图标', type: 'input', placeholder: '请输入图标名称', hidden: formValues.type === '3' },
+    { name: 'permission', label: '权限标识', type: 'input', placeholder: '如: system:user:create', hidden: formValues.type === '1' },
     { name: 'sort', label: '排序', type: 'number', placeholder: '请输入排序号' },
     { name: 'status', label: '状态', type: 'switch' },
-    { name: 'cache', label: '缓存', type: 'switch', hidden: formValues.type !== '1' },
-    { name: 'hidden', label: '隐藏', type: 'switch', hidden: formValues.type === '2' },
-    { name: 'alwaysShow', label: '始终显示', type: 'switch', hidden: formValues.type === '2' },
+    { name: 'isExternal', label: '外链', type: 'switch', hidden: formValues.type === '3' },
+    { name: 'isCache', label: '缓存', type: 'switch', hidden: formValues.type !== '2' },
+    { name: 'isHidden', label: '隐藏', type: 'switch', hidden: formValues.type === '3' },
+    { name: 'alwaysShow', label: '始终显示', type: 'switch', hidden: formValues.type === '3' },
   ]
 
   const renderRows = (items: Menu[], depth: number): React.ReactNode[] => {
@@ -194,12 +233,8 @@ export default function MenuPage() {
               ) : (
                 <span className="w-6" />
               )}
-              {menu.type === 0 ? (
-                <Folder className="mr-2 h-4 w-4 text-blue-500" />
-              ) : menu.type === 1 ? (
-                <FileText className="mr-2 h-4 w-4 text-green-500" />
-              ) : (
-                <Key className="mr-2 h-4 w-4 text-orange-500" />
+              {menu.icon && (
+                <SvgIcon name={menu.icon} className="mr-2 h-4 w-4" />
               )}
               <span className="font-medium">{menu.title}</span>
             </div>
@@ -209,35 +244,54 @@ export default function MenuPage() {
               {typeMap[menu.type]?.label ?? '未知'}
             </Badge>
           </TableCell>
-          <TableCell className="font-mono text-xs">{menu.permission || '-'}</TableCell>
-          <TableCell className="font-mono text-xs">{menu.path || '-'}</TableCell>
-          <TableCell>{menu.sort}</TableCell>
           <TableCell>
             <Badge variant={menu.status === 1 ? 'default' : 'destructive'}>
               {menu.status === 1 ? '启用' : '禁用'}
             </Badge>
           </TableCell>
+          <TableCell className="font-mono text-xs">{menu.path || '-'}</TableCell>
+          <TableCell className="font-mono text-xs">{menu.name || '-'}</TableCell>
+          <TableCell className="font-mono text-xs">{menu.component || '-'}</TableCell>
+          <TableCell className="font-mono text-xs">{menu.permission || '-'}</TableCell>
+          <TableCell className="text-center">
+            {menu.isExternal ? (
+              <Badge variant="default" className="text-[10px]">是</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px]">否</Badge>
+            )}
+          </TableCell>
+          <TableCell className="text-center">
+            {menu.isHidden ? (
+              <Badge variant="default" className="text-[10px]">是</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px]">否</Badge>
+            )}
+          </TableCell>
+          <TableCell className="text-center">
+            {menu.isCache ? (
+              <Badge variant="default" className="text-[10px]">是</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px]">否</Badge>
+            )}
+          </TableCell>
+          <TableCell>{menu.sort}</TableCell>
           <TableCell className="text-right">
             <div className="flex items-center justify-end gap-1">
-              {(menu.type === 0 || menu.type === 1) && has('system:menu:create') && (
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddForm(menu.id)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
               {has('system:menu:update') && (
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditForm(menu)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => openEditForm(menu)}>修改</Button>
               )}
               {has('system:menu:delete') && (
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
                   onClick={() => { setDeleteTarget(menu); setDeleteOpen(true) }}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  删除
                 </Button>
+              )}
+              {(menu.type === 1 || menu.type === 2) && has('system:menu:create') && (
+                <Button variant="ghost" size="sm" onClick={() => openAddForm(menu.id)}>新增</Button>
               )}
             </div>
           </TableCell>
@@ -257,18 +311,59 @@ export default function MenuPage() {
         <p className="text-sm text-muted-foreground mt-1">系统菜单与权限配置</p>
       </div>
 
+      {/* 搜索栏 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="搜索菜单标题"
+            value={searchTitle}
+            onChange={(e) => setSearchTitle(e.target.value)}
+            className="h-8 w-48 pl-8"
+          />
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="搜索路由地址"
+            value={searchPath}
+            onChange={(e) => setSearchPath(e.target.value)}
+            className="h-8 w-48 pl-8"
+          />
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="搜索权限标识"
+            value={searchPermission}
+            onChange={(e) => setSearchPermission(e.target.value)}
+            className="h-8 w-48 pl-8"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={resetSearch}>
+          <RefreshCw className="h-3.5 w-3.5 mr-1" /> 重置
+        </Button>
+      </div>
+
+      {/* 工具栏 */}
       <div className="flex items-center gap-2">
         {has('system:menu:create') && (
-          <Button onClick={() => openAddForm(0)}>
+          <Button size="sm" onClick={() => openAddForm(0)}>
             <Plus className="mr-2 h-4 w-4" />
-            新增根菜单
+            新增
           </Button>
         )}
-        <Button variant="outline" onClick={expandAll}>展开全部</Button>
-        <Button variant="outline" onClick={collapseAll}>折叠全部</Button>
-        <Button variant="outline" onClick={handleClearCache}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          清除缓存
+        {has('system:menu:clearCache') && (
+          <Button variant="outline" size="sm" onClick={handleClearCache}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            清除缓存
+          </Button>
+        )}
+        <Button variant="outline" size="sm" onClick={expandAll}>
+          <MindMapping className="mr-2 h-4 w-4" /> 展开
+        </Button>
+        <Button variant="outline" size="sm" onClick={collapseAll}>
+          <List className="mr-2 h-4 w-4" /> 折叠
         </Button>
       </div>
 
@@ -276,32 +371,37 @@ export default function MenuPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[240px]">菜单标题</TableHead>
-              <TableHead className="w-[80px]">类型</TableHead>
-              <TableHead className="w-[180px]">权限标识</TableHead>
-              <TableHead className="w-[160px]">路由地址</TableHead>
-              <TableHead className="w-[80px]">排序</TableHead>
-              <TableHead className="w-[80px]">状态</TableHead>
-              <TableHead className="w-[140px] text-right">操作</TableHead>
+              <TableHead className="min-w-[200px]">菜单标题</TableHead>
+              <TableHead className="w-[70px]">类型</TableHead>
+              <TableHead className="w-[70px]">状态</TableHead>
+              <TableHead className="w-[140px]">路由地址</TableHead>
+              <TableHead className="w-[120px]">组件名称</TableHead>
+              <TableHead className="w-[160px]">组件路径</TableHead>
+              <TableHead className="w-[160px]">权限标识</TableHead>
+              <TableHead className="w-[60px]">外链</TableHead>
+              <TableHead className="w-[60px]">隐藏</TableHead>
+              <TableHead className="w-[60px]">缓存</TableHead>
+              <TableHead className="w-[60px]">排序</TableHead>
+              <TableHead className="w-[160px] text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={12} className="h-24 text-center">
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 </TableCell>
               </TableRow>
-            ) : data.length === 0 ? (
+            ) : filteredData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={12} className="h-24 text-center text-muted-foreground">
                   暂无数据
                 </TableCell>
               </TableRow>
             ) : (
-              renderRows(data, 0)
+              renderRows(filteredData, 0)
             )}
           </TableBody>
         </Table>
