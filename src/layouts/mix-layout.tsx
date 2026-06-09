@@ -117,7 +117,7 @@ export function MixLayout() {
               'p-2 sm:p-3 md:p-4 lg:p-5',
               isMobile && isAppPage ? 'pb-20' : ''
             )}>
-              <div className="mx-auto w-full max-w-7xl">
+              <div className="w-full">
                 <Outlet />
               </div>
             </main>

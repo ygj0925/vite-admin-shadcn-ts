@@ -102,7 +102,7 @@ export function DataTable<T extends { id: string | number }>({
       </div>
 
       <div className="rounded border overflow-x-auto">
-        <table className="w-full text-sm" style={{ width: table.getCenterTotalSize() }}>
+        <table className="w-full text-sm" style={{ minWidth: table.getCenterTotalSize() }}>
           <thead className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -114,7 +114,7 @@ export function DataTable<T extends { id: string | number }>({
                       key={header.id}
                       className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground relative"
                       style={{
-                        width: header.getSize(),
+                        minWidth: header.getSize(),
                         ...(isPinned ? { position: 'sticky', right: 0, zIndex: 2, background: 'hsl(var(--background))' } : {}),
                       }}
                     >
@@ -173,7 +173,7 @@ export function DataTable<T extends { id: string | number }>({
                         key={cell.id}
                         className="p-2 align-middle whitespace-nowrap"
                         style={{
-                          width: cell.column.getSize(),
+                          minWidth: cell.column.getSize(),
                           ...(isPinned ? { position: 'sticky', right: 0, zIndex: 1, background: 'hsl(var(--background))' } : {}),
                         }}
                       >

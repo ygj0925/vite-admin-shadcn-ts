@@ -51,7 +51,7 @@ export function DefaultLayout() {
           // 移动端底部导航空间
           isMobile && isAppPage ? 'pb-20' : ''
         )}>
-          <div className="mx-auto w-full max-w-7xl">
+          <div className="w-full">
             <Outlet />
           </div>
         </main>

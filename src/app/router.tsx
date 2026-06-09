@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { lazy, Suspense, useMemo, useState, useEffect } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-router-dom'
 import { useRouteStore } from '@/stores/route'
@@ -19,27 +20,10 @@ const NotImplementedPage = lazy(() => import('@/views/errors/not-implemented'))
 const ForbiddenPage = lazy(() => import('@/views/errors/403'))
 const NotFoundPage = lazy(() => import('@/views/errors/404'))
 const ServerErrorPage = lazy(() => import('@/views/errors/500'))
-const AboutPage = lazy(() => import('@/views/about/index'))
-const ApiDocPage = lazy(() => import('@/views/about/document/api'))
-const ChangelogPage = lazy(() => import('@/views/about/document/changelog'))
 const RedirectPage = lazy(() => import('@/views/redirect/index'))
-const WorkplacePage = lazy(() => import('@/views/dashboard/workplace/index'))
-const AnalysisPage = lazy(() => import('@/views/dashboard/analysis/index'))
 const ITDashboardPage = lazy(() => import('@/views/it-dashboard/index'))
 const ITDashboardTabsPage = lazy(() => import('@/views/it-dashboard/tabs/index'))
-const DictTreePage = lazy(() => import('@/views/system/dict/tree'))
 const ViewNoticePage = lazy(() => import('@/views/system/notice/view'))
-const RoleTreePage = lazy(() => import('@/views/system/role/tree'))
-const UserDeptPage = lazy(() => import('@/views/system/user/dept'))
-
-// APP pages
-const AppHomePage = lazy(() => import('@/views/app/home/index'))
-const AppAiChatPage = lazy(() => import('@/views/app/ai-chat/index'))
-const AppSchedulePage = lazy(() => import('@/views/app/schedule/index'))
-const AppInfoPage = lazy(() => import('@/views/app/info/index'))
-const AppInfoDetailPage = lazy(() => import('@/views/app/info/detail'))
-const AppProfilePage = lazy(() => import('@/views/app/profile/index'))
-const AppSettingsPage = lazy(() => import('@/views/app/profile/settings'))
 
 function resolveComponent(component: string) {
   if (!component || component === 'Layout') return null
@@ -80,9 +64,16 @@ function wrap(Component: React.ComponentType) {
   )
 }
 
+// 静态独占路径：这些由 router.tsx 注册，buildDynamicRoutes 遇到时跳过
+// 仅保留带路径参数 / 不在后端菜单中表达的页面
+const STATIC_OWNED_PATHS = new Set<string>(['/system/notice/view'])
+
 function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   const result: any[] = []
   for (const route of routes) {
+    // 跳过外链：菜单中的 http(s):// 链接不应注册为路由
+    if (route.isExternal || /^https?:\/\//.test(route.path)) continue
+
     const isHidden = (route as any).isHidden ?? route.meta?.hidden ?? false
     if (isHidden) continue
 
@@ -125,10 +116,16 @@ function buildDynamicRoutes(routes: RouteItem[], parentPath = ''): any[] {
   return result
 }
 
-const STATIC_OWNED_PATHS = new Set<string>(['/system/notice/view'])
-
 /**
  * 构建完整的路由配置
+ *
+ * 静态路由仅保留：
+ * - 无需鉴权的页面：login / social-callback / pwd-expired / corp-select / 403 / 500
+ * - 框架级独立页面：it-dashboard / it-dashboard-tabs（无 Layout）
+ * - 含路径参数的查看页：system/notice/view/:id（后端菜单无法表达 :id 占位）
+ * - 中转 / 兜底：redirect/:path / * → NotFound
+ *
+ * 业务页面（dashboard、about、system 列表页、app 模块等）全部由后端菜单驱动。
  */
 function buildRouterConfig(dynamicRoutes: RouteItem[]) {
   const dynamic = buildDynamicRoutes(dynamicRoutes)
@@ -145,30 +142,7 @@ function buildRouterConfig(dynamicRoutes: RouteItem[]) {
       path: '/',
       element: <AuthGuard><Layout /></AuthGuard>,
       children: [
-        { index: true, element: <Navigate to="/dashboard/workplace" replace /> },
-        { path: 'dashboard/workplace', element: wrap(WorkplacePage) },
-        { path: 'dashboard/analysis', element: wrap(AnalysisPage) },
-        { path: 'about', element: wrap(AboutPage) },
-        { path: 'about/document/api', element: wrap(ApiDocPage) },
-        { path: 'about/document/changelog', element: wrap(ChangelogPage) },
-        { path: 'system/dict/tree', element: wrap(DictTreePage) },
         { path: 'system/notice/view/:id', element: wrap(ViewNoticePage) },
-        { path: 'system/role/tree', element: wrap(RoleTreePage) },
-        { path: 'system/user/dept', element: wrap(UserDeptPage) },
-        {
-          path: 'app',
-          element: <Outlet />,
-          children: [
-            { index: true, element: <Navigate to="/app/home" replace /> },
-            { path: 'home', element: wrap(AppHomePage) },
-            { path: 'ai-chat', element: wrap(AppAiChatPage) },
-            { path: 'schedule', element: wrap(AppSchedulePage) },
-            { path: 'info', element: wrap(AppInfoPage) },
-            { path: 'info/:id', element: wrap(AppInfoDetailPage) },
-            { path: 'profile', element: wrap(AppProfilePage) },
-            { path: 'settings', element: wrap(AppSettingsPage) },
-          ],
-        },
         { path: 'redirect/:path', element: wrap(RedirectPage) },
         ...dynamic,
         { path: '*', element: wrap(NotFoundPage) },
@@ -184,43 +158,62 @@ function buildRouterConfig(dynamicRoutes: RouteItem[]) {
  * Vue 流程：router.beforeEach → userStore.getInfo() → routeStore.generateRoutes()
  *          → router.addRoute() → next({...to, replace: true})
  *
- * React 等价：在组件渲染前先获取路由，用获取到的完整路由表创建 router，
- *            确保 RouterProvider 首次渲染时就有完整的路由表。
+ * React 等价：在组件渲染前并行拉取 userInfo 和路由，用完整路由表创建 router，
+ *            确保 RouterProvider 首次渲染时就有完整路由表 + userInfo 就绪。
+ *
+ * 关键差异说明：
+ * - 不再短路 dynamicRoutes 缓存：每次刷新都重新拉取 /auth/user/route（对齐 Vue 版）
+ * - 并行 Promise.all([fetchUserInfo, getUserRoute])：两者都就绪才渲染
+ * - 任一失败 → reset + 跳登录页（避免空菜单白屏）
+ * - pwdExpired 在路由初始化阶段命中即 Navigate 到 /pwdExpired
  */
 export function AppRouter() {
   const token = useUserStore((s) => s.token)
+  const fetchUserInfo = useUserStore((s) => s.fetchUserInfo)
+  const reset = useUserStore((s) => s.reset)
   const setDynamicRoutes = useRouteStore((s) => s.setDynamicRoutes)
   const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
-  const [routesLoaded, setRoutesLoaded] = useState(false)
+  // 未登录时不需要异步初始化，直接标记为已加载（由 AuthGuard 跳登录）
+  const [routesLoaded, setRoutesLoaded] = useState(() => !token)
+  const [pwdExpired, setPwdExpired] = useState(false)
 
-  // 核心逻辑：和 Vue 的 guard.ts 一致，在渲染前先获取路由
   useEffect(() => {
-    if (!token) {
-      setRoutesLoaded(true)
-      return
-    }
+    if (!token) return
 
-    // 已有路由数据（从 Zustand persist 恢复），直接标记完成
-    if (dynamicRoutes.length > 0) {
-      setRoutesLoaded(true)
-      return
-    }
+    let aborted = false
+    // token 变化（重新登录、切换账号）时重置加载状态以触发新一轮初始化
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRoutesLoaded(false)
+    setPwdExpired(false)
 
-    // 没有路由数据，从 API 获取（对标 Vue 的 routeStore.generateRoutes()）
-    getUserRoute()
-      .then((res) => {
-        setDynamicRoutes(res.data)
+    // 并行拉取用户信息和路由表（与 Vue 版 guard.ts 行为对齐：每次都拉）
+    Promise.all([fetchUserInfo(), getUserRoute()])
+      .then(([userInfo, routeRes]) => {
+        if (aborted) return
+        setDynamicRoutes(routeRes.data)
+        if (userInfo?.pwdExpired) {
+          setPwdExpired(true)
+        }
       })
       .catch((err) => {
-        console.error('[AppRouter] 获取路由失败:', err)
+        if (aborted) return
+        console.error('[AppRouter] 初始化失败:', err)
+        // 拉取失败（多为 401）→ 清空状态并跳登录
+        reset()
+        const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+        window.location.replace(`/login?redirect=${redirect}`)
       })
       .finally(() => {
+        if (aborted) return
         setRoutesLoaded(true)
       })
-  }, [token]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    return () => {
+      aborted = true
+    }
+  }, [token, fetchUserInfo, setDynamicRoutes, reset])
 
   // 路由未加载完成时显示 loading，不渲染 RouterProvider
-  // 这和 Vue 的 NProgress.start() + beforeEach 阻塞效果一致
   if (!routesLoaded) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -229,19 +222,23 @@ export function AppRouter() {
     )
   }
 
-  return <AppRouterInner />
+  // 密码过期 → 强制跳转过期页（在路由表注册之前拦截）
+  if (pwdExpired && window.location.pathname !== '/pwdExpired') {
+    return <Navigate to="/pwdExpired" replace />
+  }
+
+  return <AppRouterInner dynamicRoutes={dynamicRoutes} />
 }
 
 /**
  * 内部路由组件 —— 在路由数据就绪后渲染
+ * useMemo 保证 dynamicRoutes 引用变化时 router 实例重建，
+ * React Router v6.4+ 会自动重新匹配当前 URL，无需 key 强制重挂载。
  */
-function AppRouterInner() {
-  const dynamicRoutes = useRouteStore((s) => s.dynamicRoutes)
-
+function AppRouterInner({ dynamicRoutes }: { dynamicRoutes: RouteItem[] }) {
   const router = useMemo(() => {
     return createBrowserRouter(buildRouterConfig(dynamicRoutes))
   }, [dynamicRoutes])
 
-  // key 强制重新挂载，确保 React Router 重新匹配当前 URL
-  return <RouterProvider key={dynamicRoutes.length} router={router} />
+  return <RouterProvider router={router} />
 }

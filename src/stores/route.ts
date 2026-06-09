@@ -1,12 +1,20 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { RouteItem } from '@/types/api'
+
+// 清理旧版本残留的 localStorage 持久化数据
+// 当前不再持久化 dynamicRoutes，每次刷新都会从后端重新拉取
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('continew-route')
+  } catch {
+    // ignore
+  }
+}
 
 interface RouteState {
   dynamicRoutes: RouteItem[]
   flatRoutes: RouteItem[]
   firstRoutePath: string
-  _hasHydrated: boolean
   setDynamicRoutes: (routes: RouteItem[]) => void
   setFlatRoutes: (routes: RouteItem[]) => void
 }
@@ -48,6 +56,7 @@ function findFirstRoutePath(routes: RouteItem[], parentPath = ''): string {
     const isHidden = route.meta?.hidden ?? route.isHidden ?? false
     if (isHidden) continue
     if (route.isExternal) continue
+    if (/^https?:\/\//.test(route.path)) continue
 
     const fullPath = route.path.startsWith('/')
       ? route.path
@@ -82,43 +91,21 @@ function flattenRoutes(routes: RouteItem[], parentPath = ''): RouteItem[] {
   return result
 }
 
-export const useRouteStore = create<RouteState>()(
-  persist(
-    (set) => ({
-      dynamicRoutes: [],
-      flatRoutes: [],
-      firstRoutePath: '',
-      _hasHydrated: false,
+export const useRouteStore = create<RouteState>()((set) => ({
+  dynamicRoutes: [],
+  flatRoutes: [],
+  firstRoutePath: '',
 
-      setDynamicRoutes: (routes) => {
-        // 顶级路由也按 sort 排序
-        const sorted = [...routes].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-        const normalized = sorted.map(r => normalizeRoute(r))
-        set({
-          dynamicRoutes: normalized,
-          flatRoutes: flattenRoutes(normalized),
-          firstRoutePath: findFirstRoutePath(normalized),
-        })
-      },
+  setDynamicRoutes: (routes) => {
+    // 顶级路由也按 sort 排序
+    const sorted = [...routes].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+    const normalized = sorted.map(r => normalizeRoute(r))
+    set({
+      dynamicRoutes: normalized,
+      flatRoutes: flattenRoutes(normalized),
+      firstRoutePath: findFirstRoutePath(normalized),
+    })
+  },
 
-      setFlatRoutes: (routes) => set({ flatRoutes: routes }),
-    }),
-    {
-      name: 'continew-route',
-      partialize: (state) => ({
-        dynamicRoutes: state.dynamicRoutes,
-      }),
-      onRehydrateStorage: () => (state) => {
-        // 历史持久化的数据可能没有 meta 字段，重新归一化一次以保证菜单标题/图标存在
-        if (state && state.dynamicRoutes?.length) {
-          const normalized = state.dynamicRoutes.map(normalizeRoute)
-          state.dynamicRoutes = normalized
-          state.flatRoutes = flattenRoutes(normalized)
-        }
-        if (state) {
-          state._hasHydrated = true
-        }
-      },
-    }
-  )
-)
+  setFlatRoutes: (routes) => set({ flatRoutes: routes }),
+}))

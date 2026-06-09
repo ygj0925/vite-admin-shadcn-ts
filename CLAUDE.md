@@ -23,20 +23,28 @@ No test framework is configured.
 
 Routes are defined in `src/app/router.tsx` and split into two categories:
 
-- **Static routes**: login, error pages, dashboards — eagerly imported.
-- **Dynamic routes**: fetched from `/auth/user/route` API at runtime. View modules are resolved via `import.meta.glob('../views/**/*.tsx')` and lazy-loaded with `React.lazy` + `Suspense`.
+- **Static routes**: only framework-level pages — `/login`, `/social/callback`, `/pwdExpired`, `/corp-select`, `/403`, `/500`, `/it-dashboard`, `/it-dashboard-tabs`, `/system/notice/view/:id` (param route), `/redirect/:path`, and the `*` fallback. Eagerly imported.
+- **Dynamic routes**: fetched from `/auth/user/route` API at runtime. View modules are resolved via `import.meta.glob('../views/**/*.tsx')` and lazy-loaded with `React.lazy` + `Suspense`. All business pages (dashboard, about, system list pages, app module, etc.) live here — do NOT hardcode them into `buildRouterConfig`.
 
-`src/app/auth-guard.tsx` gates all routes: redirects to `/login` if no token, otherwise fetches user info and route config before rendering.
+**Initialization flow** (`AppRouter` in `src/app/router.tsx`, mirrors the Vue version's `beforeEach`):
+1. On every mount with a token, runs `Promise.all([fetchUserInfo(), getUserRoute()])` — **refresh always re-fetches**, the `dynamicRoutes` store is not persisted.
+2. If `userInfo.pwdExpired` is true, redirects to `/pwdExpired` via `<Navigate>` before any layout renders.
+3. On any failure (401 / network), calls `userStore.reset()` and redirects to `/login?redirect=...`.
+4. Only once both calls succeed does `RouterProvider` mount.
+
+`src/app/auth-guard.tsx` is a thin gate that handles token check, OAuth callback detection, `corp` query cleanup, and root-path redirect to `firstRoutePath`. It does NOT fetch data anymore.
+
+`buildDynamicRoutes` skips external links (path matching `^https?://` or `isExternal === true`) so backend menus can include them safely without polluting the router table.
 
 ### State Management — Zustand v5 + localStorage
 
-Six stores in `src/stores/`, all using `persist` middleware with `continew-` localStorage prefix:
+Six stores in `src/stores/`, most using `persist` middleware with `continew-` localStorage prefix. **`route.ts` is intentionally NOT persisted** — it is rebuilt on every refresh from the `/auth/user/route` response.
 
 | Store | Responsibility |
 |-------|---------------|
 | `app.ts` | UI prefs: layout mode, theme, menu collapse, tabs, animation, theme color |
 | `user.ts` | Auth state: token, userInfo, roles, permissions, routes; login/logout actions |
-| `route.ts` | Dynamic route data from backend + flattened lookup map |
+| `route.ts` | Dynamic route data from backend + flattened lookup map (not persisted) |
 | `tabs.ts` | Tab bar open/close/affix management |
 | `dict.ts` | Dictionary/enum data cache (fetched on demand) |
 | `tenant.ts` | Multi-tenant state (tenantId, enabled, code) |
