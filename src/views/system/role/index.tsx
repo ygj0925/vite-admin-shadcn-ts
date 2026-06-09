@@ -31,6 +31,7 @@ import { usePermission } from '@/hooks/use-permission'
 
 import {
   getRolePage,
+  getRoleById,
   addRole,
   updateRole,
   deleteRole,
@@ -44,6 +45,20 @@ const statusOptions = [
   { label: '启用', value: '1' },
   { label: '禁用', value: '0' },
 ]
+
+// 把后端权限树（title/children）归一化为 CheckboxTree 期望的 { id, label, children }
+// 与 Vue 版 Permission.vue 的 transformMenu 等价：保留所有节点（包含按钮级 permission 节点），
+// 让用户可以勾选每一个 menuId。
+function normalizePermTree(nodes: unknown): TreeNode[] {
+  if (!Array.isArray(nodes)) return []
+  return nodes.map((node: Record<string, unknown>) => ({
+    id: node.id as string | number,
+    label: (node.title as string | undefined) ?? (node.name as string | undefined) ?? String(node.id),
+    children: Array.isArray(node.children) && node.children.length > 0
+      ? normalizePermTree(node.children)
+      : undefined,
+  }))
+}
 
 export default function RolePage() {
   const { has } = usePermission()
@@ -92,6 +107,7 @@ export default function RolePage() {
   const [permTree, setPermTree] = useState<TreeNode[]>([])
   const [permChecked, setPermChecked] = useState<string[]>([])
   const [permFetching, setPermFetching] = useState(false)
+  const [permCheckStrictly, setPermCheckStrictly] = useState(true)
 
   // Search handlers
   const onSearch = useCallback(() => {
@@ -169,18 +185,31 @@ export default function RolePage() {
     setDeleteOpen(false)
   }, [handleDelete, deleteIds])
 
+  // 把后端权限树（title/children）归一化为 CheckboxTree 期望的 { id, label, children }
+  // 与 Vue 版 Permission.vue 的 transformMenu 等价：保留所有节点（包含按钮级 permission 节点），
+  // 让用户可以勾选每一个 menuId。
+
   // Permission management
   const openPermission = useCallback(async (role: Role) => {
     setPermRoleId(role.id)
     setPermRoleName(role.name)
-    setPermChecked(role.permissions || [])
+    setPermChecked([])
+    setPermTree([])
     setPermOpen(true)
     setPermFetching(true)
     try {
-      const tree = await getPermissionTree()
-      setPermTree(tree as unknown as TreeNode[])
+      // 与 Vue 版一致：并行拉取权限树 + 角色详情（含 menuIds / menuCheckStrictly）
+      const [treeRes, roleRes] = await Promise.all([
+        getPermissionTree(),
+        getRoleById(role.id),
+      ])
+      setPermTree(normalizePermTree(treeRes.data ?? []))
+      const detail = roleRes.data as Role & { menuIds?: (string | number)[], menuCheckStrictly?: boolean }
+      setPermChecked((detail.menuIds ?? []).map(String))
+      setPermCheckStrictly(detail.menuCheckStrictly ?? true)
     } catch {
       setPermTree([])
+      setPermChecked([])
     } finally {
       setPermFetching(false)
     }
@@ -190,7 +219,12 @@ export default function RolePage() {
     if (!permRoleId) return
     setPermLoading(true)
     try {
-      await updatePermission(permRoleId, permChecked)
+      // 后端 menuIds 是 number[]，前端 CheckboxTree 内部用 string 维护，提交前转回数字
+      const menuIds = permChecked.map((id) => {
+        const n = Number(id)
+        return Number.isNaN(n) ? id : (n as unknown as string)
+      })
+      await updatePermission(permRoleId, menuIds, permCheckStrictly)
       toast.success('权限配置已更新')
       setPermOpen(false)
     } catch {
@@ -198,7 +232,7 @@ export default function RolePage() {
     } finally {
       setPermLoading(false)
     }
-  }, [permRoleId, permChecked])
+  }, [permRoleId, permChecked, permCheckStrictly])
 
   // Form fields
   const formFields: FormField[] = useMemo(
