@@ -22,10 +22,9 @@ export function DefaultLayout() {
       <SidebarInset className="flex h-svh min-w-0 flex-col overflow-hidden bg-background">
         <NoticePopup />
 
-        {/* Header - 现代化玻璃效果 */}
+        {/* Header — refined glass */}
         <header className={cn(
-          'sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2',
-          'border-b border-border/50 bg-background/80 backdrop-blur-xl',
+          'app-header sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2',
           'px-3 sm:px-4 md:px-5'
         )}>
           <SidebarTrigger className="-ml-1 hover:bg-accent" />
@@ -35,9 +34,9 @@ export function DefaultLayout() {
           </div>
         </header>
 
-        {/* Tabs Bar - 仅桌面端显示 */}
+        {/* Tabs Bar — desktop only */}
         {tab && !isMobile && (
-          <div className="hidden border-b border-border/50 bg-background/90 backdrop-blur-sm md:block">
+          <div className="app-tabsbar hidden md:block">
             <TabsBar />
           </div>
         )}

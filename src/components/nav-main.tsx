@@ -66,6 +66,10 @@ export function NavMain({
                   tooltip={item.title}
                   isActive={isActive}
                   onClick={() => handleNavigate(item.url)}
+                  className={cn(
+                    'press',
+                    isActive && 'nav-active-rail'
+                  )}
                 >
                   {item.icon}
                   <span>{item.title}</span>
@@ -100,9 +104,9 @@ export function NavMain({
                             key={subItem.title}
                             onClick={() => handleNavigate(subItem.url)}
                             className={cn(
-                              "flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
+                              "press flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
                               isSubActive
-                                ? "bg-primary text-primary-foreground"
+                                ? "bg-primary/10 text-primary font-medium"
                                 : "hover:bg-accent hover:text-accent-foreground"
                             )}
                           >
@@ -127,7 +131,11 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title} isActive={isActive}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={isActive}
+                    className={cn('press', isActive && 'nav-active-rail')}
+                  >
                     {item.icon}
                     <span>{item.title}</span>
                     <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -142,6 +150,9 @@ export function NavMain({
                           <SidebarMenuSubButton
                             isActive={isSubActive}
                             onClick={() => handleNavigate(subItem.url)}
+                            className={cn(
+                              isSubActive && 'text-sidebar-primary font-medium bg-sidebar-accent'
+                            )}
                           >
                             <span>{subItem.title}</span>
                           </SidebarMenuSubButton>

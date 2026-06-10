@@ -19,8 +19,8 @@ function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
   return (
     <div className={cn(
       'hidden md:flex w-16 flex-col items-center',
-      'border-r border-border/50 bg-sidebar',
-      'py-3 gap-1.5'
+      'border-r border-sidebar-border bg-sidebar',
+      'py-3 gap-1'
     )}>
       {visibleRoutes.map((route) => {
         const active = location.pathname.startsWith(route.path)
@@ -28,10 +28,10 @@ function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
           <button
             key={route.path}
             className={cn(
-              'group flex flex-col items-center gap-1 rounded-lg p-2 text-xs',
-              'transition-all duration-200 w-12',
+              'group flex flex-col items-center gap-1 rounded-md p-2 text-xs',
+              'transition-all duration-200 w-12 press',
               active
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                ? 'nav-active-rail'
                 : 'hover:bg-sidebar-accent'
             )}
             title={route.meta?.title}
@@ -40,15 +40,15 @@ function OneLevelMenu({ routes }: { routes: RouteItem[] }) {
               'flex h-5 w-5 items-center justify-center transition-colors duration-200',
               active
                 ? 'text-sidebar-primary'
-                : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+                : 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground'
             )}>
               {route.meta?.icon ? <SvgIcon name={route.meta.icon} size={18} /> : route.meta?.title?.[0]}
             </span>
             <span className={cn(
               'truncate text-[10px] w-full text-center transition-colors duration-200',
               active
-                ? 'text-sidebar-accent-foreground font-medium'
-                : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+                ? 'text-sidebar-primary font-medium'
+                : 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground'
             )}>
               {route.meta?.title}
             </span>
@@ -74,10 +74,9 @@ export function ColumnsLayout() {
         <OneLevelMenu routes={dynamicRoutes} />
         <AppSidebar />
         <SidebarInset className="flex flex-1 flex-col overflow-hidden bg-background">
-          {/* Header - 现代化玻璃效果 */}
+          {/* Header — refined glass */}
           <header className={cn(
-            'sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2',
-            'border-b border-border/50 bg-background/80 backdrop-blur-xl',
+            'app-header sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2',
             'px-3 sm:px-4 md:px-5'
           )}>
             <SidebarTrigger className="-ml-1 hover:bg-accent" />
@@ -89,7 +88,7 @@ export function ColumnsLayout() {
 
           {/* Tabs Bar */}
           {tab && !isMobile && (
-            <div className="hidden border-b border-border/50 bg-muted/20 md:block">
+            <div className="app-tabsbar hidden md:block">
               <TabsBar />
             </div>
           )}

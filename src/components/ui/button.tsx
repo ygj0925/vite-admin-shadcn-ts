@@ -9,7 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default:
+          "bg-primary text-primary-foreground shadow-[0_1px_2px_color-mix(in_oklch,var(--primary)_40%,transparent),inset_0_1px_0_oklch(1_0_0/0.18)] hover:brightness-[1.08] hover:shadow-[0_2px_8px_color-mix(in_oklch,var(--primary)_45%,transparent),inset_0_1px_0_oklch(1_0_0/0.22)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_oklch(1_0_0/0.1)]",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

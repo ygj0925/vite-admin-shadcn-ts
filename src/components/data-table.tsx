@@ -164,7 +164,7 @@ export function DataTable<T extends { id: string | number }>({
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => onRowClick?.(row.original)}
-                  className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${onRowClick ? 'cursor-pointer' : ''}`}
+                  className={`border-b border-border/50 transition-colors hover:bg-[color-mix(in_oklch,var(--primary)_5%,transparent)] data-[state=selected]:bg-[color-mix(in_oklch,var(--primary)_8%,transparent)] ${onRowClick ? 'cursor-pointer' : ''}`}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const isPinned = cell.column.getIsPinned()

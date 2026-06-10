@@ -87,8 +87,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         {/* Logo */}
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className="logo-mark flex size-8 items-center justify-center rounded-lg text-primary-foreground">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -105,8 +105,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </svg>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">ContiNew</span>
-            <span className="truncate text-xs text-muted-foreground">
+            <span className="truncate font-semibold tracking-tight">ContiNew</span>
+            <span className="truncate text-[11px] text-muted-foreground tracking-wide uppercase">
               Admin
             </span>
           </div>

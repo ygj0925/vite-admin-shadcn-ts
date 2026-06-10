@@ -40,10 +40,9 @@ export function MixLayout() {
       <div className="flex h-screen flex-col overflow-hidden bg-background">
         <NoticePopup />
 
-        {/* Header - 现代化玻璃效果 */}
+        {/* Header — refined glass */}
         <header className={cn(
-          'sticky top-0 z-40 flex h-14 items-center justify-between',
-          'border-b border-border/50 bg-background/80 backdrop-blur-xl',
+          'app-header sticky top-0 z-40 flex h-14 items-center justify-between',
           'px-3 sm:px-4 md:px-5'
         )}>
           <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
@@ -54,22 +53,22 @@ export function MixLayout() {
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-lg',
                   'text-muted-foreground transition-all duration-200',
-                  'hover:bg-accent hover:text-foreground active:scale-95'
+                  'hover:bg-accent hover:text-foreground press'
                 )}
               >
                 <Menu className="h-5 w-5" />
               </button>
             )}
             <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-sm font-bold text-primary-foreground shadow-md">
+              <div className="logo-mark flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold tracking-tight text-primary-foreground">
                 C
               </div>
-              <span className="text-sm sm:text-[15px] font-bold tracking-tight text-foreground">ContiNew</span>
+              <span className="text-sm sm:text-[15px] font-semibold tracking-tight text-foreground">ContiNew</span>
             </div>
             {/* 一级导航：移动端隐藏，桌面端显示 */}
-            <div className="hidden md:block h-5 w-px bg-border/50" />
+            <div className="hidden md:block h-5 w-px bg-border/60" />
             <ScrollArea className="hidden md:block max-w-96 whitespace-nowrap">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {firstLevelRoutes.map((route) => {
                   const active = currentFirst?.path === route.path
                   return (
@@ -77,9 +76,9 @@ export function MixLayout() {
                       key={route.path}
                       onClick={() => handleNavClick(route.path)}
                       className={cn(
-                        'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200',
+                        'rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 press',
                         active
-                          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                          ? 'nav-pill-active'
                           : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                       )}
                     >
@@ -93,7 +92,7 @@ export function MixLayout() {
           </div>
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
             <ThemeToggle />
-            <div className="mx-1 h-5 w-px bg-border/50 md:mx-1.5" />
+            <div className="mx-1 h-5 w-px bg-border/60 md:mx-1.5" />
             <UserDropdown />
           </div>
         </header>
@@ -105,7 +104,7 @@ export function MixLayout() {
           <SidebarInset className="flex flex-1 flex-col overflow-hidden bg-background">
             {/* Tabs Bar */}
             {tab && !isMobile && (
-              <div className="hidden border-b border-border/50 bg-muted/20 md:block">
+              <div className="app-tabsbar hidden md:block">
                 <TabsBar />
               </div>
             )}
