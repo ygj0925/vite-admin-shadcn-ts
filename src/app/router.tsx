@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, RouterProvider, Outlet } from 'react-rou
 import { useRouteStore } from '@/stores/route'
 import { useUserStore } from '@/stores/user'
 import { getUserRoute } from '@/apis/auth'
+import { redirectToLogin } from '@/utils/login-redirect'
 import { AuthGuard } from './auth-guard'
 import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
@@ -158,6 +159,26 @@ function buildRouterConfig(dynamicRoutes: RouteItem[]) {
 }
 
 /**
+ * OAuth 回调同步前置（参考 sss-task-web router.beforeEach）
+ *
+ * 如果当前 URL 是 /?source=&code=… 形式（第三方 OAuth 跳回），
+ * 直接 window.location.replace 到 /social/callback，
+ * 避免先渲染一帧框架再 useEffect 跳走。
+ *
+ * 必须在 AppRouter 渲染前同步执行 —— 这里在 module 评估阶段就跑。
+ * 返回 true 表示已发起跳转，调用方应短路渲染。
+ */
+function handleOAuthCallbackSync(): boolean {
+  if (typeof window === 'undefined') return false
+  const { pathname, search } = window.location
+  if (pathname !== '/' || !search) return false
+  const params = new URLSearchParams(search)
+  if (!params.has('source') || !params.has('code')) return false
+  window.location.replace(`/social/callback${search}`)
+  return true
+}
+
+/**
  * AppRouter —— 对标 Vue 项目的路由初始化流程
  *
  * Vue 流程：router.beforeEach → userStore.getInfo() → routeStore.generateRoutes()
@@ -167,12 +188,18 @@ function buildRouterConfig(dynamicRoutes: RouteItem[]) {
  *            确保 RouterProvider 首次渲染时就有完整路由表 + userInfo 就绪。
  *
  * 关键差异说明：
+ * - OAuth 回调同步前置：避免渲染闪烁
  * - 不再短路 dynamicRoutes 缓存：每次刷新都重新拉取 /auth/user/route（对齐 Vue 版）
  * - 并行 Promise.all([fetchUserInfo, getUserRoute])：两者都就绪才渲染
- * - 任一失败 → reset + 跳登录页（避免空菜单白屏）
+ * - 任一失败 → reset + redirectToLogin（按环境分流 SSO / corp-select / login）
  * - pwdExpired 在路由初始化阶段命中即 Navigate 到 /pwdExpired
  */
 export function AppRouter() {
+  // 同步前置：OAuth 回调命中后整页跳走，返回 null 避免后续渲染
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const oauthHandled = useMemo(() => handleOAuthCallbackSync(), [])
+  if (oauthHandled) return null
+
   const token = useUserStore((s) => s.token)
   const fetchUserInfo = useUserStore((s) => s.fetchUserInfo)
   const reset = useUserStore((s) => s.reset)
@@ -203,10 +230,11 @@ export function AppRouter() {
       .catch((err) => {
         if (aborted) return
         console.error('[AppRouter] 初始化失败:', err)
-        // 拉取失败（多为 401）→ 清空状态并跳登录
+        // 拉取失败（多为 401）→ 清空状态并按环境分流跳登录
         reset()
-        const redirect = encodeURIComponent(window.location.pathname + window.location.search)
-        window.location.replace(`/login?redirect=${redirect}`)
+        const currentPath = window.location.pathname + window.location.search
+        // fire-and-forget；redirectToLogin 内部走 window.location.replace
+        void redirectToLogin(currentPath)
       })
       .finally(() => {
         if (aborted) return

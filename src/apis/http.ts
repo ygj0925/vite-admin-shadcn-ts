@@ -1,12 +1,41 @@
 import axios, { type AxiosResponse, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
-import { getToken, removeToken } from '@/lib/auth'
+import { getToken } from '@/lib/auth'
+import { showLoginExpiredDialog } from '@/stores/auth-dialog'
 import type { ApiRes } from '@/types/api'
+
+/** HTTP 状态码 → 用户可读消息（参考 sss-task-web 的完整版） */
+const StatusCodeMessage: Record<number, string> = {
+  200: '服务器成功返回请求的数据',
+  201: '新建或修改数据成功',
+  202: '一个请求已经进入后台排队（异步任务）',
+  204: '删除数据成功',
+  400: '请求错误(400)',
+  401: '未授权，请重新登录(401)',
+  403: '拒绝访问(403)',
+  404: '请求出错(404)',
+  408: '请求超时(408)',
+  500: '服务器错误(500)',
+  501: '服务未实现(501)',
+  502: '网络错误(502)',
+  503: '服务不可用(503)',
+  504: '网络超时(504)',
+}
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_PREFIX ?? import.meta.env.VITE_API_BASE_URL,
   timeout: 30_000,
 })
+
+/** msg ≥15 字符 → toast description；短 msg → toast title */
+function handleBizError(msg: string) {
+  const m = msg || '服务器端错误'
+  if (m.length >= 15) {
+    toast.error('操作失败', { description: m })
+  } else {
+    toast.error(m)
+  }
+}
 
 http.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -30,36 +59,32 @@ http.interceptors.response.use(
     if (res.success) {
       return response
     }
-    // 401 → redirect to login (preserve current path for redirect back)
-    if (res.code === 401 && !response.config.url?.includes('/auth/user/info')) {
-      removeToken()
-      toast.error('登录已过期，请重新登录')
-      const redirect = encodeURIComponent(window.location.pathname + window.location.search)
-      window.location.href = `/login?redirect=${redirect}`
+    // Token 失效：弹模态对话框（用户点「重新登录」才会跳转）
+    // /auth/user/info 排除：避免初始化阶段获取用户信息失败时叠加弹窗
+    //   （该路径的 401 会在 AppRouter 的 Promise.all catch 里走 redirectToLogin）
+    if (Number(res.code) === 401 && !response.config.url?.includes('/auth/user/info')) {
+      showLoginExpiredDialog(res.msg)
       return Promise.reject(new Error(res.msg))
     }
-    // Error toast
-    if (res.msg && res.msg.length >= 15) {
-      toast.error('操作失败', { description: res.msg })
-    } else {
-      toast.error(res.msg || '操作失败')
-    }
+    // 其他业务错误
+    handleBizError(res.msg)
     return Promise.reject(new Error(res.msg))
   },
   (error) => {
-    const statusMap: Record<number, string> = {
-      400: '请求错误',
-      401: '未授权，请登录',
-      403: '拒绝访问',
-      404: '请求地址不存在',
-      408: '请求超时',
-      500: '服务器内部错误',
-      501: '服务未实现',
-      502: '网关错误',
-      503: '服务不可用',
-      504: '网关超时',
+    // 网络层错误
+    if (!error.response) {
+      toast.error('网络连接失败，请检查您的网络')
+      return Promise.reject(error)
     }
-    const msg = statusMap[error.response?.status] || `连接错误${error.response?.status}`
+    const status: number | undefined = error.response?.status
+    if (status === 401) {
+      // HTTP 401（非业务 code 401）：同样走模态
+      showLoginExpiredDialog(StatusCodeMessage[401])
+      return Promise.reject(error)
+    }
+    const msg =
+      (status && StatusCodeMessage[status]) ||
+      `服务器暂时未响应，请刷新页面并重试。若无法解决，请联系管理员`
     toast.error(msg)
     return Promise.reject(error)
   }

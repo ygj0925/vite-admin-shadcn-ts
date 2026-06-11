@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppRouter } from '@/app/router'
 import { useAppStore } from '@/stores/app'
 import { useVersionCheck } from '@/hooks/use-version-check'
+import { LoginExpiredDialog } from '@/components/login-expired-dialog'
 
 function App() {
   const theme = useAppStore((s) => s.theme)
@@ -26,6 +27,7 @@ function App() {
   return (
     <TooltipProvider delayDuration={200}>
       <AppRouter />
+      <LoginExpiredDialog />
       <Toaster position="top-right" richColors />
     </TooltipProvider>
   )
