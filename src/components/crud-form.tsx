@@ -11,7 +11,8 @@ import { Loader2 } from 'lucide-react'
 export interface FormField {
   name: string
   label: string
-  type: 'input' | 'textarea' | 'select' | 'switch' | 'number' | 'password'
+  // type 缺省时按 'input' 处理（最常见场景）
+  type?: 'input' | 'textarea' | 'select' | 'switch' | 'number' | 'password' | 'date'
   placeholder?: string
   required?: boolean
   options?: { label: string; value: string | number }[]
@@ -26,7 +27,10 @@ interface CrudFormProps {
   onOpenChange: (open: boolean) => void
   title: string
   fields: FormField[]
-  values?: Record<string, unknown>
+  // 接受任意 object，内部用作只读快照
+  values?: Record<string, any>
+  /** values 的别名，部分调用方用 initialValues */
+  initialValues?: Record<string, any>
   loading?: boolean
   onSubmit: (values: Record<string, unknown>) => void
   width?: string
@@ -38,17 +42,19 @@ export function CrudForm({
   title,
   fields,
   values,
+  initialValues,
   loading,
   onSubmit,
   width = 'max-w-lg',
 }: CrudFormProps) {
   const [formValues, setFormValues] = useState<Record<string, unknown>>({})
+  const effectiveValues = values ?? initialValues
 
   useEffect(() => {
     if (open) {
-      setFormValues(values || {})
+      setFormValues(effectiveValues || {})
     }
-  }, [open, values])
+  }, [open, effectiveValues])
 
   const handleChange = (name: string, value: unknown) => {
     setFormValues((prev) => ({ ...prev, [name]: value }))
@@ -78,22 +84,24 @@ export function CrudForm({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="grid gap-4" style={{ gridTemplateColumns: visibleFields.some((f) => f.span === 2) ? 'repeat(2, 1fr)' : '1fr' }}>
-            {visibleFields.map((field) => (
+            {visibleFields.map((field) => {
+              const fieldType = field.type ?? 'input'
+              return (
               <div key={field.name} className="space-y-1.5" style={{ gridColumn: field.span === 2 ? 'span 2' : undefined }}>
                 <Label htmlFor={field.name}>
                   {field.label}
                   {field.required && <span className="text-destructive ml-0.5">*</span>}
                 </Label>
-                {field.type === 'input' || field.type === 'password' ? (
+                {fieldType === 'input' || fieldType === 'password' ? (
                   <Input
                     id={field.name}
-                    type={field.type}
+                    type={fieldType}
                     placeholder={field.placeholder}
                     value={String(formValues[field.name] || '')}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     disabled={field.disabled}
                   />
-                ) : field.type === 'number' ? (
+                ) : fieldType === 'number' ? (
                   <Input
                     id={field.name}
                     type="number"
@@ -102,7 +110,16 @@ export function CrudForm({
                     onChange={(e) => handleChange(field.name, Number(e.target.value))}
                     disabled={field.disabled}
                   />
-                ) : field.type === 'textarea' ? (
+                ) : fieldType === 'date' ? (
+                  <Input
+                    id={field.name}
+                    type="date"
+                    placeholder={field.placeholder}
+                    value={String(formValues[field.name] || '')}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    disabled={field.disabled}
+                  />
+                ) : fieldType === 'textarea' ? (
                   <Textarea
                     id={field.name}
                     placeholder={field.placeholder}
@@ -111,7 +128,7 @@ export function CrudForm({
                     rows={field.rows || 3}
                     disabled={field.disabled}
                   />
-                ) : field.type === 'select' ? (
+                ) : fieldType === 'select' ? (
                   <Select value={String(formValues[field.name] || '')} onValueChange={(v) => handleChange(field.name, v)} disabled={field.disabled}>
                     <SelectTrigger>
                       <SelectValue placeholder={field.placeholder} />
@@ -122,7 +139,7 @@ export function CrudForm({
                       ))}
                     </SelectContent>
                   </Select>
-                ) : field.type === 'switch' ? (
+                ) : fieldType === 'switch' ? (
                   <Switch
                     checked={!!formValues[field.name]}
                     onCheckedChange={(v) => handleChange(field.name, v)}
@@ -130,7 +147,8 @@ export function CrudForm({
                   />
                 ) : null}
               </div>
-            ))}
+              )
+            })}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>

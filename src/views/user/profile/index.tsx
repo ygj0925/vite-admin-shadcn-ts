@@ -10,7 +10,6 @@ import {
   Unlink,
   Loader2,
   Save,
-  Lock,
   Smartphone,
   Mail,
   KeyRound,
@@ -18,7 +17,6 @@ import {
   GitFork,
   MessageCircle,
   Building2,
-  CalendarDays,
   User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -33,7 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog,
@@ -662,7 +659,7 @@ function InfoItem({ label, value, className }: { label: string; value?: string |
   )
 }
 
-function SecurityRow({ icon, label, description, bound, actionLabel, onAction }: {
+function SecurityRow({ icon, label, description, bound: _bound, actionLabel, onAction }: {
   icon: React.ReactNode; label: string; description: string; bound: boolean; actionLabel: string; onAction?: () => void
 }) {
   return (

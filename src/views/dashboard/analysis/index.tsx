@@ -219,7 +219,7 @@ export default function AnalysisPage() {
                 <ChartContainer height={240}>
                   <PieChart>
                     <Pie data={browserData} cx="50%" cy="50%" outerRadius={95} paddingAngle={2} dataKey="value" stroke="none"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                       labelLine={false}
                     >
                       {browserData.map((_, i) => (

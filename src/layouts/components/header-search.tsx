@@ -28,6 +28,7 @@ export function HeaderSearch() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const flatRoutes = useRouteStore((s) => s.flatRoutes)
+  const flatRouteMap = useRouteStore((s) => s.flatRouteMap)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [history, setHistory] = useState<string[]>(getHistory)
@@ -40,16 +41,16 @@ export function HeaderSearch() {
       })
     : []
 
-  // 历史记录匹配
+  // 历史记录匹配（O(1) 查找）
   const historyItems = query.trim()
     ? []
-    : history.map((path) => flatRoutes.find((r) => r.path === path)).filter(Boolean)
+    : history.map((path) => flatRouteMap[path]).filter(Boolean)
 
   const displayItems = query.trim() ? results : historyItems
   const maxIndex = displayItems.length - 1
 
   const handleSelect = useCallback(
-    (path: string, title?: string) => {
+    (path: string, _title?: string) => {
       const newHistory = [path, ...history.filter((h) => h !== path)].slice(0, MAX_HISTORY)
       saveHistory(newHistory)
       setHistory(newHistory)
@@ -111,23 +112,22 @@ export function HeaderSearch() {
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          'flex h-8 items-center gap-2 rounded-lg',
-          'border border-border/50 bg-background/50',
-          'px-2.5 sm:px-3 text-sm text-muted-foreground',
-          'transition-all duration-200',
-          'hover:bg-accent hover:text-foreground',
-          'active:scale-95'
+          // navy header 半透明搜索框 (参考 wuji_digital_portal)
+          'flex w-full items-center gap-2 rounded-xl',
+          'bg-white/10 hover:bg-white/15 border border-white/20',
+          'px-3.5 py-2 text-sm transition-colors'
         )}
       >
-        <Search className="h-3.5 w-3.5" />
-        {!isMobile && <span className="hidden lg:inline">搜索</span>}
+        <Search className="w-4 h-4 text-blue-300 shrink-0" />
+        <span className="flex-1 text-left text-blue-100/90 truncate">
+          {isMobile ? '搜索' : '搜索菜单、页面、文档...'}
+        </span>
         {!isMobile && (
           <kbd className={cn(
-            'pointer-events-none hidden h-5 select-none items-center',
-            'gap-0.5 rounded border border-border bg-muted px-1.5',
-            'font-mono text-[10px] font-medium lg:inline-flex'
+            'hidden sm:flex items-center gap-1 text-xs text-blue-300',
+            'bg-white/10 rounded px-1.5 py-0.5'
           )}>
-            Ctrl K
+            <span>⌘</span><span>K</span>
           </kbd>
         )}
       </button>

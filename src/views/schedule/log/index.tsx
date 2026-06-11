@@ -27,7 +27,7 @@ export default function JobLogPage() {
   const [jobName, setJobName] = useState(searchParams.get('jobName') || '')
   const [groupName, setGroupName] = useState(searchParams.get('groupName') || '')
   const [taskBatchStatus, setTaskBatchStatus] = useState<string>('')
-  const [groupList, setGroupList] = useState<string[]>([])
+  const [, setGroupList] = useState<string[]>([])
 
   const [stopOpen, setStopOpen] = useState(false)
   const [stopTarget, setStopTarget] = useState<JobLog | null>(null)

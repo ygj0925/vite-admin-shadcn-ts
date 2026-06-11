@@ -141,7 +141,7 @@ export default function VerifyPoints({
         {/* Click point indicators */}
         {clickPoints.map((point, index) => {
           if (!imgRef.current) return null
-          const rect = imgRef.current.getBoundingClientRect?.()
+          imgRef.current.getBoundingClientRect?.()
           // Convert back from scaled coords to display coords
           const displayX = (point.x / REF_WIDTH) * 100
           const displayY = (point.y / REF_HEIGHT) * 100

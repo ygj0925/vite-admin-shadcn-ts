@@ -14,7 +14,6 @@ interface UserSelectProps {
   multiple?: boolean
   value?: string | string[]
   onChange: (value: string | string[]) => void
-  roleId?: string
   disabled?: boolean
 }
 
@@ -22,7 +21,6 @@ export function UserSelect({
   multiple = false,
   value,
   onChange,
-  roleId,
   disabled = false,
 }: UserSelectProps) {
   // Table state
@@ -65,7 +63,7 @@ export function UserSelect({
     setLoading(true)
     try {
       const params: UserPageQuery = {
-        current: page,
+        page,
         size,
       }
       if (keyword) {
@@ -75,8 +73,8 @@ export function UserSelect({
         params.deptId = deptId
       }
       const res = await getUserPage(params)
-      setData(res.records || [])
-      setTotal(res.total || 0)
+      setData(res.data.list || [])
+      setTotal(res.data.total || 0)
     } catch {
       setData([])
       setTotal(0)

@@ -8,7 +8,15 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 export function TabsBar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { openTabs, activeTab, removeTab, closeOtherTabs, closeLeftTabs, closeRightTabs, closeAllTabs, setActiveTab } = useTabsStore()
+  // 拆 selector：仅订阅渲染需要的字段，actions 单独取（actions 引用稳定，不会引起重渲）
+  const openTabs = useTabsStore((s) => s.openTabs)
+  const activeTab = useTabsStore((s) => s.activeTab)
+  const removeTab = useTabsStore((s) => s.removeTab)
+  const closeOtherTabs = useTabsStore((s) => s.closeOtherTabs)
+  const closeLeftTabs = useTabsStore((s) => s.closeLeftTabs)
+  const closeRightTabs = useTabsStore((s) => s.closeRightTabs)
+  const closeAllTabs = useTabsStore((s) => s.closeAllTabs)
+  const setActiveTab = useTabsStore((s) => s.setActiveTab)
 
   const handleTabClick = (path: string) => {
     setActiveTab(path)

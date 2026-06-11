@@ -2,6 +2,10 @@ import { Moon, Sun } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { cn } from '@/lib/utils'
 
+/**
+ * 主题切换按钮（navy header 风格）
+ * 9×9 圆角图标按钮 + text-blue-200 hover:text-white hover:bg-white/10
+ */
 export function ThemeToggle() {
   const theme = useAppStore((s) => s.theme)
   const toggleTheme = useAppStore((s) => s.toggleTheme)
@@ -9,17 +13,16 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
+      aria-label="切换主题"
       className={cn(
-        'flex h-8 w-8 items-center justify-center rounded-lg',
-        'text-muted-foreground transition-all duration-200',
-        'hover:bg-accent hover:text-foreground',
-        'active:scale-95'
+        'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+        'text-blue-200 hover:text-white hover:bg-white/10'
       )}
     >
       {theme === 'light' ? (
-        <Moon className="h-4 w-4 transition-transform duration-200" />
+        <Moon className="w-[18px] h-[18px]" />
       ) : (
-        <Sun className="h-4 w-4 transition-transform duration-200 rotate-0" />
+        <Sun className="w-[18px] h-[18px]" />
       )}
     </button>
   )

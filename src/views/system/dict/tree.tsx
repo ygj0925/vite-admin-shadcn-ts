@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DeleteConfirm } from '@/components/delete-confirm'
 import { CrudForm } from '@/components/crud-form'
 import { DataTable } from '@/components/data-table'
-import { getDictPage, addDict, updateDict, deleteDict, clearDictCache, getDictItemPage, type Dict, type DictItem } from '@/apis/system/dict'
+import { getDictPage, addDict, updateDict, deleteDict, clearDictCache, getDictItemPage, addDictItem, updateDictItem, deleteDictItem, type Dict, type DictItem } from '@/apis/system/dict'
 import { usePermission } from '@/hooks/use-permission'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -133,7 +133,7 @@ export default function DictTreePage() {
 
   const handleItemSubmit = async (values: Record<string, any>) => {
     if (editingItem) { await updateDictItem(editingItem.id, { ...values, dictCode: selectedDict?.code }); toast.success('修改成功') }
-    else { await addDict({ ...values, dictCode: selectedDict?.code }); toast.success('新增成功') }
+    else { await addDictItem({ ...values, dictCode: selectedDict?.code }); toast.success('新增成功') }
     setItemFormOpen(false)
     if (selectedDict) fetchDictItems(selectedDict.code)
   }

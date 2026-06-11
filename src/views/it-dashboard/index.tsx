@@ -152,7 +152,7 @@ export default function ITDashboardPage() {
                   tickFormatter={(v) => `${v}%`}
                 />
                 <Tooltip
-                  formatter={(v: number) => `${v}%`}
+                  formatter={(v: any) => `${v}%`}
                   contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                 />
                 <Line
@@ -213,7 +213,7 @@ export default function ITDashboardPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                 <YAxis tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                 <Tooltip
-                  formatter={(v: number) => `¥${v}万`}
+                  formatter={(v: any) => `¥${v}万`}
                   contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                 />
                 <Area

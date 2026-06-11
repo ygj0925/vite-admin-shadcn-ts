@@ -4,7 +4,6 @@ import { Bell, CheckCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
 import { getMessagePage, readAllMessages, type Message } from '@/apis/user/message'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +49,7 @@ export function MessagePopover({ unreadCount, onRead }: MessagePopoverProps) {
     }
   }
 
-  const handleClickMessage = (msg: Message) => {
+  const handleClickMessage = (_msg: Message) => {
     setOpen(false)
     navigate('/user/message')
   }
@@ -59,15 +58,18 @@ export function MessagePopover({ unreadCount, onRead }: MessagePopoverProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button className={cn(
-          'relative flex h-8 w-8 items-center justify-center rounded-lg',
-          'text-muted-foreground transition-all duration-200',
-          'hover:bg-accent hover:text-foreground active:scale-95'
+          // navy header 风格：9×9 圆角 + 蓝白配色 + 红色徽标
+          'relative w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+          'text-blue-200 hover:text-white hover:bg-white/10'
         )}>
-          <Bell className="h-4 w-4" />
+          <Bell className="w-[18px] h-[18px]" />
           {unreadCount > 0 && (
-            <Badge className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] shadow-sm">
+            <span className={cn(
+              'absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 rounded-full',
+              'text-white text-[10px] font-bold flex items-center justify-center'
+            )}>
               {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
+            </span>
           )}
         </button>
       </PopoverTrigger>

@@ -31,8 +31,9 @@ export function getRolePage(params: RolePageQuery) {
       return true
     })
     const start = (page - 1) * size
-    res.data = { list: filtered.slice(start, start + size), total: filtered.length }
-    return res as unknown as { data: PageRes<Role> }
+    return {
+      data: { list: filtered.slice(start, start + size), total: filtered.length },
+    } as { data: PageRes<Role> }
   })
 }
 

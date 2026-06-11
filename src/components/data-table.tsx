@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,9 +19,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[]
   data: T[]
-  total: number
-  page: number
-  size: number
+  total?: number
+  page?: number
+  size?: number
   loading?: boolean
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
@@ -30,12 +30,12 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void
 }
 
-export function DataTable<T extends { id: string | number }>({
+function DataTableInner<T extends Record<string, any>>({
   columns,
   data,
-  total,
-  page,
-  size,
+  total = 0,
+  page = 1,
+  size = 10,
   loading,
   selectedIds = [],
   onSelectionChange,
@@ -188,7 +188,9 @@ export function DataTable<T extends { id: string | number }>({
         </table>
       </div>
 
-      <div className="flex items-center justify-end gap-4">
+      {/* 无分页参数时（如 tree/list 模式）整行隐藏 */}
+      {(onPageChange || onSizeChange) && (
+        <div className="flex items-center justify-end gap-4">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">每页</span>
           <Select value={String(size)} onValueChange={(v) => onSizeChange?.(Number(v))}>
@@ -240,6 +242,12 @@ export function DataTable<T extends { id: string | number }>({
           </Button>
         </div>
       </div>
+      )}
     </div>
   )
 }
+
+// React.memo 默认浅比较 props。调用方应该用 useMemo 稳定 columns，
+// useCallback 稳定 onPageChange/onSizeChange/onSelectionChange/onRowClick。
+// 类型断言保留泛型签名（memo 包装泛型组件的官方推荐做法）
+export const DataTable = memo(DataTableInner) as typeof DataTableInner

@@ -1,4 +1,4 @@
-import { get, post, put, patch, del } from '@/apis/http'
+import { get, post, put, del } from '@/apis/http'
 import type { PageRes, PageQuery } from '@/types/api'
 
 export interface TaskItem {

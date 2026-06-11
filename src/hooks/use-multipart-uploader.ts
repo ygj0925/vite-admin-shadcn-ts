@@ -91,7 +91,6 @@ function delay(ms: number): Promise<void> {
 
 export function useMultipartUploader(config: UploaderConfig = {}) {
   const {
-    maxConcurrentChunks = navigator.hardwareConcurrency || 4,
     maxUploadWorkers = Math.max(1, Math.floor((navigator.hardwareConcurrency || 4) / 2)),
     rootPath = '/',
   } = config
@@ -183,7 +182,7 @@ export function useMultipartUploader(config: UploaderConfig = {}) {
 
       try {
         const resp = await uploadPart(formData, abortController.signal)
-        return resp
+        return resp.data
       } catch (err: any) {
         if (err.name === 'AbortError') return null
         throw err
@@ -289,12 +288,13 @@ export function useMultipartUploader(config: UploaderConfig = {}) {
         updateTask(uid, { md5, status: 'uploading' })
 
         // Step 2: Init multipart upload
-        const initResp = await initMultipartUpload({
+        const initRes = await initMultipartUpload({
           fileName: task.file.name,
           fileSize: task.file.size,
           fileMd5: md5,
           parentPath: task.folderPath || rootPath,
         })
+        const initResp = initRes.data
 
         const chunkSize = initResp.partSize
         const totalChunks = Math.ceil(task.file.size / chunkSize)

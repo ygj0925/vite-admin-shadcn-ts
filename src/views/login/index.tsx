@@ -40,7 +40,6 @@ MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAM51dgYtMyF+tTQt80sfFOpSV27a7t9u
 aUVeFrdGiVxscuizE7H8SMntYqfn9lp8a5GH5P1/GGehVjUD2gF/4kcCAwEAAQ==
 -----END PUBLIC KEY-----`
 
-type LoginTab = 'account' | 'phone' | 'email' | 'social'
 
 interface CaptchaData {
   img: string

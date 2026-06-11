@@ -15,6 +15,8 @@ export interface PageQuery {
   page: number
   size: number
   sort?: string[]
+  // 索引签名：允许业务方扩展任意查询字段，同时兼容 axios params 的 Record<string, unknown> 约束
+  [key: string]: unknown
 }
 
 export interface LabelValueState {

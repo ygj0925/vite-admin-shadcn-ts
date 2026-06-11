@@ -4,6 +4,7 @@ import type { LabelValueState } from '@/types/api'
 export interface Menu {
   id: number
   title: string
+  name?: string
   parentId: number
   path: string
   component: string
@@ -15,6 +16,10 @@ export interface Menu {
   cache: boolean
   hidden: boolean
   alwaysShow: boolean
+  // 后端扁平字段（与 stores/route 的 normalizeRoute 对应）
+  isExternal?: boolean
+  isHidden?: boolean
+  isCache?: boolean
   children?: Menu[]
   createTime: string
   updateTime: string

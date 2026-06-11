@@ -20,6 +20,8 @@ export interface LogEntry {
   duration: number
   createUser: string
   createTime: string
+  // 登录日志专有字段
+  username?: string
 }
 
 export function getLoginLogPage(params: PageQuery) {

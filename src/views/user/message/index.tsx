@@ -60,7 +60,7 @@ const noticeTypes: Record<number, string> = {
 /*  My Messages Tab                                                  */
 /* ------------------------------------------------------------------ */
 
-function MyMessageTab({ unreadCount }: { unreadCount: number }) {
+function MyMessageTab({ unreadCount: _unreadCount }: { unreadCount: number }) {
   const [detailOpen, setDetailOpen] = useState(false)
   const [current, setCurrent] = useState<Message | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)

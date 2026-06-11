@@ -73,7 +73,7 @@ function fieldToExpression(field: FieldState, _fieldKey: FieldKey): string {
   }
 }
 
-function parseFieldToState(expr: string, fieldKey: FieldKey): FieldState {
+function parseFieldToState(expr: string, _fieldKey: FieldKey): FieldState {
   if (!expr || expr === '*') {
     return { ...DEFAULT_FIELD, mode: 'EVERY', value: '*' }
   }
@@ -323,9 +323,9 @@ function getNextExecutions(cronExpr: string, count: number): string[] {
 
       const [s, m, h, d, mo, w] = parts
 
-      const matchField = (field: string, value: number) => {
+      const matchField = (field: string, value: number): boolean => {
         if (field === '*' || field === '?') return true
-        if (field.includes(',')) return field.split(',').some((v) => matchField(v.trim(), value))
+        if (field.includes(',')) return field.split(',').some((v: string) => matchField(v.trim(), value))
         if (field.includes('/')) {
           const [base, step] = field.split('/')
           const stepNum = parseInt(step)

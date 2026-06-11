@@ -14,7 +14,8 @@ export function useVersionCheck() {
 
     const checkVersion = async () => {
       try {
-        const res = await fetch('/', { cache: 'no-cache' })
+        // HEAD 请求只取响应头，不下载 index.html 主体（之前每 5 分钟拉 30-50KB）
+        const res = await fetch('/', { method: 'HEAD', cache: 'no-cache' })
         const etag = res.headers.get('etag')
         const lastModified = res.headers.get('last-modified')
         const currentVersion = etag || lastModified || null

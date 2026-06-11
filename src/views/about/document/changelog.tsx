@@ -48,7 +48,7 @@ const changelog: ChangelogEntry[] = [
   },
 ]
 
-const changeTypeLabel: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+const changeTypeLabel: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   feature: { label: '新功能', variant: 'default' },
   fix: { label: '修复', variant: 'destructive' },
   improve: { label: '优化', variant: 'secondary' },

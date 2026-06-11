@@ -12,7 +12,6 @@ import {
   ExternalLink,
   FileText,
   GitBranch,
-  ChevronRight,
   Clock,
   Quote,
 } from 'lucide-react'
@@ -85,7 +84,8 @@ export default function WorkplacePage() {
   const permissions = useUserStore((s) => s.permissions)
   const nickname = userInfo?.nickname || userInfo?.username || '用户'
   const greeting = getGreeting()
-  const quote = quotes[Math.floor(Math.random() * quotes.length)]
+  // 用 lazy init 固定一次，避免每次 render 重新挑 quote 引起的内容抖动
+  const [quote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)])
 
   const [notices, setNotices] = useState<DashboardNotice[]>([])
 

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useMemo } from "react"
 import { useLocation } from "react-router-dom"
+import { Bot } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { SvgIcon } from "@/components/svg-icon"
@@ -65,7 +66,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: route.meta?.title || route.title || "",
         url: route.path,
         icon: route.meta?.icon ? (
-          <SvgIcon name={route.meta.icon} className="size-4" />
+          <SvgIcon name={route.meta.icon} size={18} />
         ) : null,
         isActive: location.pathname.startsWith(route.path),
         items: childItems,
@@ -86,29 +87,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        {/* Logo */}
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4"
-            >
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
+        {/* Logo - wuji 风格：蓝色方块 + Bot 图标 */}
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500 shrink-0">
+            <Bot className="size-[18px] text-white" />
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">ContiNew</span>
-            <span className="truncate text-xs text-muted-foreground">
-              Admin
-            </span>
+          <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-base font-bold text-white">ContiNew</span>
+            <span className="truncate text-xs text-blue-300">Admin</span>
           </div>
         </div>
       </SidebarHeader>

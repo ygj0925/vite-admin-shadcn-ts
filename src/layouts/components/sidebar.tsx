@@ -15,8 +15,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarProvider,
-  useSidebar,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { useAppStore } from '@/stores/app'
@@ -60,7 +58,6 @@ function MenuItem({ route }: { route: RouteItem }) {
   const location = useLocation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const { state } = useSidebar()
   const setMobileSidebarOpen = useAppStore((s) => s.setMobileSidebarOpen)
   const hasChildren = route.children && route.children.length > 0
 

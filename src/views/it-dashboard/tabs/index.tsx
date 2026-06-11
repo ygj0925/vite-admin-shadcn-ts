@@ -13,7 +13,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from 'recharts'
 import {
   TrendingUp,
@@ -42,7 +41,6 @@ import {
 import { ChartContainer, TESLA_COLORS } from '@/components/chart'
 import {
   projects,
-  projectStatusData,
   projectTypeData,
   deliveryTrend,
   satisfactionData,
@@ -177,7 +175,7 @@ export default function ITDashboardTabsPage() {
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
-                      formatter={(v: number) => `${v}%`}
+                      formatter={(v: any) => `${v}%`}
                       contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                     />
                     <Line
@@ -209,7 +207,7 @@ export default function ITDashboardTabsPage() {
                         paddingAngle={2}
                         dataKey="value"
                         stroke="none"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                         labelLine={false}
                       >
                         {projectTypeData.map((_, i) => (
@@ -396,7 +394,7 @@ export default function ITDashboardTabsPage() {
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
-                      formatter={(v: number) => `${v}%`}
+                      formatter={(v: any) => `${v}%`}
                       contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                     />
                     <Bar dataKey="rate" name="利用率" radius={[4, 4, 0, 0]}>
@@ -428,7 +426,7 @@ export default function ITDashboardTabsPage() {
                         paddingAngle={2}
                         dataKey="value"
                         stroke="none"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                         labelLine={false}
                       >
                         {resourceData.skillDistribution.map((_, i) => (
@@ -436,7 +434,7 @@ export default function ITDashboardTabsPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(v: number) => `${v}%`}
+                        formatter={(v: any) => `${v}%`}
                         contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                       />
                     </PieChart>
@@ -463,7 +461,7 @@ export default function ITDashboardTabsPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                   <YAxis tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                   <Tooltip
-                    formatter={(v: number) => `${v}h`}
+                    formatter={(v: any) => `${v}h`}
                     contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                   />
                   <Area
@@ -501,7 +499,7 @@ export default function ITDashboardTabsPage() {
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                     <YAxis tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                     <Tooltip
-                      formatter={(v: number) => `${v}x`}
+                      formatter={(v: any) => `${v}x`}
                       contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                     />
                     <Line
@@ -534,7 +532,7 @@ export default function ITDashboardTabsPage() {
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                     <YAxis tick={{ fontSize: 12 }} stroke="#d0d0d0" />
                     <Tooltip
-                      formatter={(v: number) => `¥${v}万`}
+                      formatter={(v: any) => `¥${v}万`}
                       contentStyle={{ borderRadius: 8, border: '1px solid #e5e5e5', fontSize: 12 }}
                     />
                     <Area

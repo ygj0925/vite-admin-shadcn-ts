@@ -232,13 +232,31 @@ export function AppRouter() {
 
 /**
  * 内部路由组件 —— 在路由数据就绪后渲染
- * useMemo 保证 dynamicRoutes 引用变化时 router 实例重建，
- * React Router v6.4+ 会自动重新匹配当前 URL，无需 key 强制重挂载。
+ *
+ * 重建策略：
+ * - 之前每次刷新都重新拉 /auth/user/route → 即使内容相同也产生新数组引用 → useMemo 重建 router → 当前页面卸载重挂（闪烁）
+ * - 现在用路由内容指纹（path + component 列表）做依赖，内容未变则复用同一个 router 实例
  */
+function routesFingerprint(routes: RouteItem[]): string {
+  const acc: string[] = []
+  const walk = (rs: RouteItem[]) => {
+    for (const r of rs) {
+      acc.push(`${r.path}|${(r as any).component ?? ''}|${r.meta?.hidden ? 1 : 0}`)
+      if (r.children?.length) walk(r.children)
+    }
+  }
+  walk(routes)
+  return acc.join('#')
+}
+
 function AppRouterInner({ dynamicRoutes }: { dynamicRoutes: RouteItem[] }) {
+  const fingerprint = useMemo(() => routesFingerprint(dynamicRoutes), [dynamicRoutes])
+
   const router = useMemo(() => {
     return createBrowserRouter(buildRouterConfig(dynamicRoutes))
-  }, [dynamicRoutes])
+    // 依赖 fingerprint：内容真正变化时才重建，引用变化但内容相同则复用
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint])
 
   return <RouterProvider router={router} />
 }

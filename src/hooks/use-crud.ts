@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import type { PageQuery, PageRes } from '@/types/api'
 
@@ -22,10 +22,20 @@ export function useCrud<T, Q extends PageQuery>({
   const [query, setQuery] = useState<Partial<Q>>({ page: 1, size: defaultPageSize } as Partial<Q>)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
+  // 把 api 函数存进 ref，避免调用方未 useCallback 包装时引用变化导致 fetchData 重建 → useEffect 重跑 → 无限请求
+  const listApiRef = useRef(listApi)
+  const deleteApiRef = useRef(deleteApi)
+  const exportApiRef = useRef(exportApi)
+
+  // 每次 render 同步最新的 api 引用，但不参与依赖
+  listApiRef.current = listApi
+  deleteApiRef.current = deleteApi
+  exportApiRef.current = exportApi
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await listApi(query as Q)
+      const res = await listApiRef.current(query as Q)
       setData(res.data.list)
       setTotal(res.data.total)
     } catch {
@@ -33,7 +43,7 @@ export function useCrud<T, Q extends PageQuery>({
     } finally {
       setLoading(false)
     }
-  }, [query, listApi])
+  }, [query])
 
   useEffect(() => {
     fetchData()
@@ -56,21 +66,21 @@ export function useCrud<T, Q extends PageQuery>({
   }, [])
 
   const handleDelete = useCallback(async (ids: string[]) => {
-    if (!deleteApi) return
+    if (!deleteApiRef.current) return
     try {
-      await deleteApi(ids)
+      await deleteApiRef.current(ids)
       toast.success('删除成功')
       setSelectedIds([])
       fetchData()
     } catch {
       // Error handled by HTTP interceptor
     }
-  }, [deleteApi, fetchData])
+  }, [fetchData])
 
   const handleExport = useCallback(async () => {
-    if (!exportApi) return
+    if (!exportApiRef.current) return
     try {
-      const blob = await exportApi(query as Q)
+      const blob = await exportApiRef.current(query as Q)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -81,7 +91,7 @@ export function useCrud<T, Q extends PageQuery>({
     } catch {
       // Error handled by HTTP interceptor
     }
-  }, [exportApi, query])
+  }, [query])
 
   return {
     data,

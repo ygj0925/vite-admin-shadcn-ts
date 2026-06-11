@@ -1,26 +1,24 @@
-import { useLocation } from 'react-router-dom'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { useMessageCount } from '@/hooks/use-message-count'
-import { AppBreadcrumb } from './breadcrumb'
 import { ThemeToggle } from './theme-toggle'
 import { MessagePopover } from './message-popover'
 import { HeaderSearch } from './header-search'
 
+/**
+ * 顶部导航 (参考 wuji_digital_portal navy 风格)
+ * 布局：搜索框居中 (max-w-xl) + 操作区右
+ */
 export function AppHeader() {
-  const location = useLocation()
-  const isMobile = useIsMobile()
   const { unreadCount, refresh } = useMessageCount()
 
   return (
-    <div className="flex h-full w-full items-center justify-between">
-      <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
-        {/* 面包屑：移动端隐藏 */}
-        <div className="hidden md:block">
-          <AppBreadcrumb />
-        </div>
-      </div>
-      <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+    <div className="flex h-full w-full items-center gap-3">
+      {/* 全局搜索 - 居中 */}
+      <div className="flex-1 max-w-xl mx-auto">
         <HeaderSearch />
+      </div>
+
+      {/* 右侧操作 */}
+      <div className="flex items-center gap-1 shrink-0">
         <MessagePopover unreadCount={unreadCount} onRead={refresh} />
         <ThemeToggle />
       </div>

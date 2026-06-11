@@ -14,6 +14,8 @@ if (typeof window !== 'undefined') {
 interface RouteState {
   dynamicRoutes: RouteItem[]
   flatRoutes: RouteItem[]
+  /** path → RouteItem 索引，避免每次 find 全表线性查找 */
+  flatRouteMap: Record<string, RouteItem>
   firstRoutePath: string
   setDynamicRoutes: (routes: RouteItem[]) => void
   setFlatRoutes: (routes: RouteItem[]) => void
@@ -94,18 +96,27 @@ function flattenRoutes(routes: RouteItem[], parentPath = ''): RouteItem[] {
 export const useRouteStore = create<RouteState>()((set) => ({
   dynamicRoutes: [],
   flatRoutes: [],
+  flatRouteMap: {},
   firstRoutePath: '',
 
   setDynamicRoutes: (routes) => {
     // 顶级路由也按 sort 排序
     const sorted = [...routes].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
     const normalized = sorted.map(r => normalizeRoute(r))
+    const flat = flattenRoutes(normalized)
+    const map: Record<string, RouteItem> = {}
+    for (const r of flat) map[r.path] = r
     set({
       dynamicRoutes: normalized,
-      flatRoutes: flattenRoutes(normalized),
+      flatRoutes: flat,
+      flatRouteMap: map,
       firstRoutePath: findFirstRoutePath(normalized),
     })
   },
 
-  setFlatRoutes: (routes) => set({ flatRoutes: routes }),
+  setFlatRoutes: (routes) => {
+    const map: Record<string, RouteItem> = {}
+    for (const r of routes) map[r.path] = r
+    set({ flatRoutes: routes, flatRouteMap: map })
+  },
 }))

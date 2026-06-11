@@ -24,6 +24,18 @@ export function useMessageCount() {
   useEffect(() => {
     if (!token) return
 
+    let cancelled = false
+
+    const startPolling = () => {
+      // 关键：先清掉旧的，再起新的；ws.onerror/onclose 双触发也只会有一个 timer
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current)
+      }
+      pollTimerRef.current = setInterval(() => {
+        if (!cancelled) fetchCount()
+      }, 300000)
+    }
+
     // 获取初始计数
     fetchCount()
 
@@ -42,7 +54,6 @@ export function useMessageCount() {
         }
 
         ws.onerror = () => {
-          // WebSocket 失败，回退到轮询
           startPolling()
         }
 
@@ -56,13 +67,12 @@ export function useMessageCount() {
       startPolling()
     }
 
-    function startPolling() {
-      if (pollTimerRef.current) return
-      pollTimerRef.current = setInterval(fetchCount, 30000)
-    }
-
     return () => {
+      cancelled = true
       if (wsRef.current) {
+        // 主动关闭前清掉回调，避免触发 onclose → startPolling 的"僵尸定时器"
+        wsRef.current.onclose = null
+        wsRef.current.onerror = null
         wsRef.current.close()
         wsRef.current = null
       }

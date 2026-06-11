@@ -13,15 +13,15 @@ export function getSiteOptions() {
   return get<Record<string, string>>('/system/option', { category: 'SITE' })
 }
 
-export function updateSiteOptions(data: any[]) {
+export function updateSiteOptions(data: Record<string, any>) {
   return put('/system/option', data)
 }
 
 export function getLoginOptions() {
-  return get<Record<string, string>>('/system/option', { category: 'LOGIN' })
+  return get<Record<string, any>>('/system/option', { category: 'LOGIN' })
 }
 
-export function updateLoginOptions(data: any[]) {
+export function updateLoginOptions(data: Record<string, any>) {
   return put('/system/option', data)
 }
 
@@ -29,6 +29,6 @@ export function getSecurityOptions() {
   return get<Record<string, string>>('/system/option', { category: 'SECURITY' })
 }
 
-export function updateSecurityOptions(data: any[]) {
+export function updateSecurityOptions(data: Record<string, any>) {
   return put('/system/option', data)
 }

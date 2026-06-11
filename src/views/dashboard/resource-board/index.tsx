@@ -120,7 +120,6 @@ export default function ResourceBoardPage() {
           <CardContent>
             <div className="space-y-3">
               {MEMBERS.map((m) => {
-                const cfg = LOAD_STATUS[m.status]
                 return (
                   <div key={m.name} className="flex items-center gap-3">
                     <span className="w-16 shrink-0 text-sm font-medium">{m.name}</span>

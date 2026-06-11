@@ -48,12 +48,12 @@ export const useAppStore = create<AppState>()(
 
       setLayout: (layout) => set({ layout }),
       setTheme: (theme) => {
-        document.documentElement.classList.toggle('dark', theme === 'dark')
+        // DOM 操作由 App.tsx 的 useEffect 统一管理（含过渡防抖），这里只更新 state
         set({ theme })
       },
       toggleTheme: () => {
         const next = get().theme === 'light' ? 'dark' : 'light'
-        get().setTheme(next)
+        set({ theme: next })
       },
       setMenuCollapse: (menuCollapse) => set({ menuCollapse }),
       toggleMenuCollapse: () => set((s) => ({ menuCollapse: !s.menuCollapse })),

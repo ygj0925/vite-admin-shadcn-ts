@@ -31,9 +31,10 @@ export function NavUser({
     avatar: string
   }
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, state } = useSidebar()
   const navigate = useNavigate()
   const logout = useUserStore((s) => s.logout)
+  const collapsed = state === "collapsed"
 
   const handleLogout = async () => {
     await logout()
@@ -55,13 +56,18 @@ export function NavUser({
                   {user.name?.[0] || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
-                </span>
-              </div>
-              <ChevronsUpDownIcon className="ml-auto size-4" />
+              {/* 折叠时隐藏姓名/邮箱/箭头，只留头像居中 */}
+              {!collapsed && (
+                <>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </div>
+                  <ChevronsUpDownIcon className="ml-auto size-4" />
+                </>
+              )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -87,17 +93,22 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate("/user/profile")}>
-                <UserIcon className="size-4" />
-                个人中心
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/user/message")}>
-                <MessageSquareIcon className="size-4" />
-                消息中心
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            {/* 折叠态隐藏「个人中心」「消息中心」，只保留退出登录 */}
+            {!collapsed && (
+              <>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => navigate("/user/profile")}>
+                    <UserIcon className="size-4" />
+                    个人中心
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/user/message")}>
+                    <MessageSquareIcon className="size-4" />
+                    消息中心
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon className="size-4" />
               退出登录

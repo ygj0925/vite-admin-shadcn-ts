@@ -112,7 +112,7 @@ export const useTabsStore = create<TabsState>()(
             if (route.meta?.affix) {
               tabs.push({
                 path: route.path,
-                title: route.meta.title,
+                title: route.meta.title ?? '',
                 icon: route.meta.icon,
                 affix: true,
                 cache: route.meta.cache,

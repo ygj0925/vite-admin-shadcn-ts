@@ -3,8 +3,6 @@ import {
   Users,
   CheckCircle,
   DollarSign,
-  Clock,
-  BarChart3,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -73,7 +71,7 @@ export interface ValueData {
   efficiencyGain: number
   availability: number
   roiTrend: { month: string; value: number }[]
-  costSavingTrend: { month: string; value: number }[]
+  costSavingTrend: { month: string; value: number; saved?: number }[]
   cases: ValueCase[]
 }
 
@@ -324,12 +322,12 @@ export const valueData: ValueData = {
     { month: '2026-05', value: 3.2 },
   ],
   costSavingTrend: [
-    { month: '2025-12', saved: 18 },
-    { month: '2026-01', saved: 22 },
-    { month: '2026-02', saved: 19 },
-    { month: '2026-03', saved: 25 },
-    { month: '2026-04', saved: 28 },
-    { month: '2026-05', saved: 32 },
+    { month: '2025-12', value: 18, saved: 18 },
+    { month: '2026-01', value: 22, saved: 22 },
+    { month: '2026-02', value: 19, saved: 19 },
+    { month: '2026-03', value: 25, saved: 25 },
+    { month: '2026-04', value: 28, saved: 28 },
+    { month: '2026-05', value: 32, saved: 32 },
   ],
   cases: [
     {

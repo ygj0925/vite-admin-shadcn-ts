@@ -11,6 +11,7 @@ export interface BehaviorCaptchaReq {
   captchaType: string
   captchaVerification?: string
   clientUid?: string
+  [key: string]: unknown
 }
 
 export interface BehaviorCaptchaResp {

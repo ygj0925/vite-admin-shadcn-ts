@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
 import { useRouteStore } from '@/stores/route'
@@ -5,14 +6,16 @@ import { cn } from '@/lib/utils'
 
 export function AppBreadcrumb() {
   const location = useLocation()
-  const flatRoutes = useRouteStore((s) => s.flatRoutes)
+  const flatRouteMap = useRouteStore((s) => s.flatRouteMap)
 
-  const pathnames = location.pathname.split('/').filter(Boolean)
-  const crumbs = pathnames.map((_, i) => {
-    const path = '/' + pathnames.slice(0, i + 1).join('/')
-    const route = flatRoutes.find((r) => r.path === path)
-    return { path, title: route?.meta?.title || pathnames[i] }
-  })
+  const crumbs = useMemo(() => {
+    const pathnames = location.pathname.split('/').filter(Boolean)
+    return pathnames.map((seg, i) => {
+      const path = '/' + pathnames.slice(0, i + 1).join('/')
+      const route = flatRouteMap[path]
+      return { path, title: route?.meta?.title || seg }
+    })
+  }, [location.pathname, flatRouteMap])
 
   return (
     <nav className="flex items-center gap-1 text-sm">

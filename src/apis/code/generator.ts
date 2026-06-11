@@ -51,7 +51,7 @@ export interface LabelValue {
 }
 
 export function listGenConfig(params: PageQuery) {
-  return get<PageRes<GenConfigResp[]>>('/code/generator/config', params)
+  return get<PageRes<GenConfigResp>>('/code/generator/config', params)
 }
 
 export function getGenConfig(tableName: string) {

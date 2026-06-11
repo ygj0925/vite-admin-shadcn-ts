@@ -75,15 +75,20 @@
   /* Border radius: Professional */
   --radius: 6px;
 
-  /* Sidebar tokens */
-  --sidebar: oklch(0.98 0.002 260);
-  --sidebar-foreground: oklch(0.145 0.015 260);
-  --sidebar-primary: oklch(0.5 0.2 265);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.005 260);
-  --sidebar-accent-foreground: oklch(0.205 0.015 260);
-  --sidebar-border: oklch(0.93 0.005 260);
-  --sidebar-ring: oklch(0.5 0.2 265);
+  /* Sidebar tokens — 参考 wuji_digital_portal：navy 主题色 #0F1E46 */
+  --sidebar: #0F1E46;
+  --sidebar-foreground: #93C5FD; /* blue-300 */
+  --sidebar-primary: #2563EB; /* blue-600 */
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563EB;
+
+  /* 品牌色 (wuji_digital_portal) */
+  --brand-navy: #0F1E46;
+  --brand-blue: #2563EB;
+  --brand-violet: #7C3AED;
 }
 
 .dark {
@@ -131,14 +136,14 @@
   --chart-4: oklch(0.75 0.12 50);
   --chart-5: oklch(0.6 0.18 330);
 
-  --sidebar: oklch(0.12 0.015 260);
-  --sidebar-foreground: oklch(0.94 0.005 260);
-  --sidebar-primary: oklch(0.6 0.2 265);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.2 0.015 260);
-  --sidebar-accent-foreground: oklch(0.94 0.005 260);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.6 0.2 265);
+  --sidebar: #0F1E46;
+  --sidebar-foreground: #93C5FD;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563EB;
 }
 
 /* --- Tailwind v4 Theme Mapping --- */
@@ -361,3 +366,163 @@
     display: none;
   }
 }
+
+
+/* ========================
+   Sidebar 样式覆写 (参考 wuji_digital_portal)
+   规格：
+   - 宽度 208/64px
+   - 菜单 h-10 rounded-xl px-3 gap-3
+   - 图标 18px
+   - 字号 14 / 字重 500
+   - 默认 blue-300，hover bg-white/8 + 白字
+   - 选中 bg-blue-600 + 白字 + 蓝色阴影
+   ======================== */
+
+/* === 侧栏外层：移除右边框，与 navy header 无缝衔接 === */
+[data-slot="sidebar-container"] {
+  border-right: 0 !important;
+}
+
+/* 折叠态：减少左右内边距，让图标真正居中 */
+[data-collapsible="icon"] [data-sidebar="content"] {
+  padding: 0 !important;
+}
+[data-collapsible="icon"] [data-sidebar="header"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+[data-collapsible="icon"] [data-sidebar="footer"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* 折叠态：菜单项 = 整个侧栏宽 64px，图标视觉居中 */
+[data-collapsible="icon"] [data-sidebar="menu"],
+[data-collapsible="icon"] [data-sidebar="menu-item"] {
+  padding: 0;
+}
+
+/* === 菜单组容器 === */
+[data-sidebar="menu"] {
+  gap: 2px;
+}
+
+/* 内层 padding 紧凑些（展开态） */
+[data-sidebar="content"] {
+  padding: 0 8px;
+}
+
+/* === 一级菜单按钮 === */
+[data-sidebar="menu-button"] {
+  height: 40px !important;
+  padding: 0 12px !important;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 12px !important; /* rounded-xl */
+  gap: 12px !important;
+  color: #93C5FD; /* blue-300 */
+  transition: all 150ms;
+}
+
+/* 图标 18px（覆盖 shadcn 默认 size-4） */
+[data-sidebar="menu-button"] svg {
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0;
+}
+
+/* 折叠态：圆角方形居中 */
+[data-collapsible="icon"] [data-sidebar="menu-button"] {
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  margin: 0 auto !important; /* 在 64px 侧栏中水平居中 */
+  gap: 0 !important;
+}
+
+/* 折叠态：隐藏菜单文字 span（始终是最后一个 span）和 chevron */
+[data-collapsible="icon"] [data-sidebar="menu-button"] > span:last-of-type:not(:only-of-type) {
+  display: none !important;
+}
+/* 隐藏目录项的 chevron（带子菜单时才有的最后那个 svg） */
+[data-collapsible="icon"] [data-sidebar="menu-button"] > svg.lucide-chevron-right {
+  display: none !important;
+}
+
+/* hover */
+[data-sidebar="menu-button"]:not([data-active="true"]):hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+/* 选中：实色蓝 + 阴影 */
+[data-sidebar="menu-button"][data-active="true"] {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  font-weight: 500;
+  box-shadow: 0 10px 25px -3px rgba(30, 58, 138, 0.4),
+              0 4px 6px -2px rgba(30, 58, 138, 0.3);
+}
+[data-sidebar="menu-button"][data-active="true"]:hover {
+  background: #1D4ED8 !important;
+}
+[data-sidebar="menu-button"][data-active="true"] svg {
+  color: #FFFFFF;
+}
+
+/* === 子菜单容器 === */
+[data-sidebar="menu-sub"] {
+  gap: 2px;
+  padding-left: 28px;
+  padding-right: 0;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-left: 0 !important;
+  transform: none !important;
+}
+
+/* === 子菜单按钮 === */
+[data-sidebar="menu-sub-button"] {
+  height: 36px !important;
+  padding: 0 12px !important;
+  font-size: 13px;
+  border-radius: 10px !important;
+  gap: 10px !important;
+  color: rgba(147, 197, 253, 0.85);
+  transform: none !important;
+}
+[data-sidebar="menu-sub-button"] svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: inherit !important;
+}
+[data-sidebar="menu-sub-button"]:not([data-active="true"]):hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+[data-sidebar="menu-sub-button"][data-active="true"] {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  font-weight: 500;
+}
+
+/* Chevron 自动右对齐 */
+[data-sidebar="menu-button"] > svg:last-child:not(:first-child) {
+  margin-left: auto;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* === 品牌区折叠时：logo 方块居中 === */
+[data-collapsible="icon"] [data-sidebar="header"] > div {
+  justify-content: center !important;
+  padding: 8px 0 !important;
+  gap: 0 !important;
+}
+
+
+
+
+

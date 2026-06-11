@@ -29,7 +29,6 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -626,7 +625,7 @@ export default function GeneratorPage() {
     [tableName, tableComment]
   )
 
-  const { data, total, loading, query, fetchData, handleSearch, handleReset, handlePageChange, handleSizeChange } = useCrud<GenConfigResp, any>({ listApi })
+  const { data, total, loading, query, handleSearch, handleReset, handlePageChange, handleSizeChange } = useCrud<GenConfigResp, any>({ listApi })
 
   const selectedTableNames = useMemo(() => Array.from(selectedKeys), [selectedKeys])
 

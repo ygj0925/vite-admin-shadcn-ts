@@ -29,7 +29,7 @@ export function getFilePage(params: PageQuery) {
   return get<PageRes<FileInfo>>('/system/file', params)
 }
 
-export function uploadFile(file: File, onProgress?: (percent: number) => void) {
+export function uploadFile(file: File, _onProgress?: (percent: number) => void) {
   const formData = new FormData()
   formData.append('file', file)
   return post<FileInfo>('/system/file/upload', formData)

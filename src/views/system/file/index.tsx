@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   Upload, Search, Grid3X3, List, Trash2, Download, Pencil, Info,
-  FolderPlus, MoreHorizontal, ChevronRight, Home, X, Check,
+  FolderPlus, MoreHorizontal, ChevronRight, Home, X,
   Image as ImageIcon, FileVideo, FileAudio, FileText, File,
-  Play, RotateCcw, Eye, HardDrive, Loader2,
+  Play, Eye, HardDrive, Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -260,16 +260,7 @@ function Sidebar({
       case 'other': return stats.otherCount
     }
   }
-
-  const getSize = (key: FileTypeFilter): number => {
-    if (!stats) return 0
-    // The API only provides totalSize; per-type sizes are not available, so we show total for all
-    // and 0 for individual categories unless the API provides breakdown
-    switch (key) {
-      case 'all': return stats.totalSize
-      default: return 0
-    }
-  }
+  // getSize 暂未启用：API 仅返回 totalSize，没有按分类的细分
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r bg-muted/30">
@@ -358,7 +349,7 @@ function GridCard({
   file: FileInfo
   selected: boolean
   onSelect: (checked: boolean) => void
-  onClick: () => void
+  onClick: (e: React.MouseEvent) => void
   onContextMenu: (e: React.MouseEvent) => void
   onPreview: () => void
 }) {
@@ -463,7 +454,7 @@ function ListRow({
   file: FileInfo
   selected: boolean
   onSelect: (checked: boolean) => void
-  onClick: () => void
+  onClick: (e: React.MouseEvent) => void
   onContextMenu: (e: React.MouseEvent) => void
   onPreview: () => void
 }) {
@@ -807,8 +798,8 @@ export default function FilePage() {
         params.type = activeFilter
       }
       const res = await getFilePage(params)
-      setFiles(res.list ?? [])
-      setTotal(res.total ?? 0)
+      setFiles(res.data.list ?? [])
+      setTotal(res.data.total ?? 0)
     } catch {
       // handled by interceptor
     } finally {
@@ -820,7 +811,7 @@ export default function FilePage() {
     setStatsLoading(true)
     try {
       const res = await getFileStatistics()
-      setStats(res)
+      setStats(res.data)
     } catch {
       // handled by interceptor
     } finally {
@@ -1050,7 +1041,7 @@ export default function FilePage() {
       toast.success('文件夹创建成功')
       setFolderDialogOpen(false)
       setFolderName('')
-      fetchData()
+      fetchFiles()
     } catch {
       // handled by interceptor
     }

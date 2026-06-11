@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { get } from '@/apis/http'
+import { get as httpGet } from '@/apis/http'
 import type { LabelValueState } from '@/types/api'
 
 interface DictState {
@@ -15,7 +15,7 @@ export const useDictStore = create<DictState>()((set, get) => ({
   fetchDict: async (code) => {
     const existing = get().cache[code]
     if (existing) return existing
-    const res = await get<LabelValueState[]>(`/system/dict/item/${code}`)
+    const res = await httpGet<LabelValueState[]>(`/system/dict/item/${code}`)
     const data = res.data || []
     set((s) => ({ cache: { ...s.cache, [code]: data } }))
     return data
