@@ -9,7 +9,12 @@ import { Layout } from '@/layouts'
 import type { RouteItem } from '@/types/api'
 
 // Eagerly discover all view modules
-const viewModules = import.meta.glob('../views/**/*.tsx')
+// 排除 views/**/components/** — 这些是页面内部的子组件，不是路由组件，
+// 避免被静态 import 的全局组件（如 NoticePopup）触发 vite 的 INEFFECTIVE_DYNAMIC_IMPORT 警告
+const viewModules = import.meta.glob([
+  '../views/**/*.tsx',
+  '!../views/**/components/**',
+])
 
 // Lazy load pages
 const LoginPage = lazy(() => import('@/views/login/index'))
